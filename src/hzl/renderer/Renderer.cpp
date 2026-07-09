@@ -48,6 +48,8 @@ namespace hzl
         : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource)),
           m_camera(1280.0f / 720.0f, glm::radians(45.0f), 0.1f, 100.0f)
     {
+        glEnable(GL_DEPTH_TEST);
+
         constexpr std::array<float, 24> vertices = {
             // position             // color
             -0.5f,  0.5f, 0.0f,     0.95f, 0.35f, 0.25f,
@@ -91,7 +93,7 @@ namespace hzl
         constexpr glm::vec3 clearColor(0.05f, 0.08f, 0.12f);
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_shader->bind();
         m_shader->setMat4("u_model", m_transform.matrix());
