@@ -47,6 +47,8 @@ add_executable(HZLAtomSimulation
     src/hzl/renderer/BufferLayout.h
     src/hzl/renderer/IndexBuffer.cpp
     src/hzl/renderer/IndexBuffer.h
+    src/hzl/renderer/Mesh.cpp
+    src/hzl/renderer/Mesh.h
     src/hzl/renderer/Renderer.cpp
     src/hzl/renderer/Renderer.h
     src/hzl/renderer/Shader.cpp

@@ -52,26 +52,17 @@ namespace hzl
             0, 1, 2,
         };
 
-        m_vertexArray = std::make_unique<VertexArray>();
-        m_vertexBuffer = std::make_unique<VertexBuffer>(
-            vertices.data(),
-            vertices.size() * sizeof(float));
-        m_indexBuffer = std::make_unique<IndexBuffer>(
-            indices.data(),
-            indices.size());
-
-        m_vertexArray->bind();
-        m_vertexBuffer->bind();
-        m_indexBuffer->bind();
-
         const BufferLayout layout = {
             {0, 3, 0},
             {1, 3, 3 * sizeof(float)},
         };
-        m_vertexArray->setLayout(layout);
 
-        m_vertexBuffer->unbind();
-        m_vertexArray->unbind();
+        m_mesh = std::make_unique<Mesh>(
+            vertices.data(),
+            vertices.size() * sizeof(float),
+            indices.data(),
+            indices.size(),
+            layout);
 
         std::cout << "Renderer initialized.\n";
     }
@@ -86,14 +77,7 @@ namespace hzl
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_shader->bind();
-        m_vertexArray->bind();
-        m_indexBuffer->bind();
-        glDrawElements(
-            GL_TRIANGLES,
-            static_cast<GLsizei>(m_indexBuffer->count()),
-            GL_UNSIGNED_INT,
-            nullptr);
-        m_vertexArray->unbind();
+        m_mesh->draw();
     }
 
     void Renderer::endFrame()
