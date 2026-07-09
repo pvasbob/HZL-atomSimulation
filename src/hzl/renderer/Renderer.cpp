@@ -4,98 +4,42 @@
 
 #include <array>
 #include <iostream>
-#include <stdexcept>
-#include <string>
+#include <memory>
 
 namespace hzl
 {
     namespace
     {
-        unsigned int compileShader(unsigned int type, const char* source)
-        {
-            const unsigned int shader = glCreateShader(type);
-            glShaderSource(shader, 1, &source, nullptr);
-            glCompileShader(shader);
+        constexpr const char* vertexShaderSource = R"(
+            #version 330 core
 
-            int success = 0;
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+            layout (location = 0) in vec3 a_position;
+            layout (location = 1) in vec3 a_color;
 
-            if (success == 0)
+            out vec3 v_color;
+
+            void main()
             {
-                int logLength = 0;
-                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-
-                std::string message(static_cast<std::size_t>(logLength), '\0');
-                glGetShaderInfoLog(shader, logLength, nullptr, message.data());
-                glDeleteShader(shader);
-
-                throw std::runtime_error("Shader compilation failed: " + message);
+                v_color = a_color;
+                gl_Position = vec4(a_position, 1.0);
             }
+        )";
 
-            return shader;
-        }
+        constexpr const char* fragmentShaderSource = R"(
+            #version 330 core
 
-        unsigned int createShaderProgram()
-        {
-            constexpr const char* vertexShaderSource = R"(
-                #version 330 core
+            in vec3 v_color;
+            out vec4 frag_color;
 
-                layout (location = 0) in vec3 a_position;
-                layout (location = 1) in vec3 a_color;
-
-                out vec3 v_color;
-
-                void main()
-                {
-                    v_color = a_color;
-                    gl_Position = vec4(a_position, 1.0);
-                }
-            )";
-
-            constexpr const char* fragmentShaderSource = R"(
-                #version 330 core
-
-                in vec3 v_color;
-                out vec4 frag_color;
-
-                void main()
-                {
-                    frag_color = vec4(v_color, 1.0);
-                }
-            )";
-
-            const unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-            const unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-            const unsigned int program = glCreateProgram();
-            glAttachShader(program, vertexShader);
-            glAttachShader(program, fragmentShader);
-            glLinkProgram(program);
-
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
-
-            int success = 0;
-            glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-            if (success == 0)
+            void main()
             {
-                int logLength = 0;
-                glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-
-                std::string message(static_cast<std::size_t>(logLength), '\0');
-                glGetProgramInfoLog(program, logLength, nullptr, message.data());
-                glDeleteProgram(program);
-
-                throw std::runtime_error("Shader linking failed: " + message);
+                frag_color = vec4(v_color, 1.0);
             }
-
-            return program;
-        }
+        )";
     }
 
     Renderer::Renderer()
-        : m_shaderProgram(createShaderProgram())
+        : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource))
     {
         constexpr std::array<float, 18> vertices = {
             // position             // color
@@ -136,7 +80,6 @@ namespace hzl
 
     Renderer::~Renderer()
     {
-        glDeleteProgram(m_shaderProgram);
         glDeleteBuffers(1, &m_vertexBuffer);
         glDeleteVertexArrays(1, &m_vertexArray);
     }
@@ -146,7 +89,7 @@ namespace hzl
         glClearColor(0.05f, 0.08f, 0.12f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(m_shaderProgram);
+        m_shader->bind();
         glBindVertexArray(m_vertexArray);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);

@@ -46,6 +46,8 @@ add_executable(HZLAtomSimulation
     src/hzl/platform/Window.h
     src/hzl/renderer/Renderer.cpp
     src/hzl/renderer/Renderer.h
+    src/hzl/renderer/Shader.cpp
+    src/hzl/renderer/Shader.h
     src/main.cpp
 )
 

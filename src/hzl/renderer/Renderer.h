@@ -1,5 +1,9 @@
 #pragma once
 
+#include "hzl/renderer/Shader.h"
+
+#include <memory>
+
 namespace hzl
 {
     class Renderer
@@ -17,6 +21,6 @@ namespace hzl
     private:
         unsigned int m_vertexArray = 0;
         unsigned int m_vertexBuffer = 0;
-        unsigned int m_shaderProgram = 0;
+        std::unique_ptr<Shader> m_shader;
     };
 }
