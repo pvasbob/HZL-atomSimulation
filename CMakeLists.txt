@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(HZLAtomSimulation
     VERSION 0.1.0
     DESCRIPTION "A modern C++ atom simulation engine"
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
 
 include(FetchContent)
@@ -18,7 +18,23 @@ FetchContent_Declare(
     GIT_TAG 3.4
 )
 
+FetchContent_Declare(
+    glad
+    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+    GIT_TAG v2.0.8
+)
+
 FetchContent_MakeAvailable(glfw)
+FetchContent_Populate(glad)
+
+set(GLAD_SOURCES_DIR ${glad_SOURCE_DIR})
+include(${glad_SOURCE_DIR}/cmake/GladConfig.cmake)
+
+glad_add_library(glad_gl_core_33
+    STATIC
+    REPRODUCIBLE
+    API gl:core=3.3
+)
 
 find_package(OpenGL REQUIRED)
 
@@ -29,6 +45,10 @@ add_executable(HZLAtomSimulation
     src/hzl/platform/Window.cpp
     src/hzl/platform/Window.h
     src/main.cpp
+)
+
+add_dependencies(HZLAtomSimulation
+    glad_gl_core_33
 )
 
 target_include_directories(HZLAtomSimulation
@@ -44,6 +64,7 @@ target_compile_features(HZLAtomSimulation
 target_link_libraries(HZLAtomSimulation
     PRIVATE
         glfw
+        glad_gl_core_33
         OpenGL::GL
 )
 

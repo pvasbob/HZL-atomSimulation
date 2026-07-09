@@ -1,6 +1,6 @@
 #include "hzl/core/Application.h"
 
-#include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 #include <chrono>
 #include <iostream>

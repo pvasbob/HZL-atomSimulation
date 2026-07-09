@@ -1,5 +1,6 @@
 #include "hzl/platform/Window.h"
 
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -36,9 +37,21 @@ namespace hzl
         glfwMakeContextCurrent(m_handle);
         glfwSwapInterval(1);
 
+        const int version = gladLoadGL(glfwGetProcAddress);
+        if (version == 0)
+        {
+            glfwDestroyWindow(m_handle);
+            m_handle = nullptr;
+            glfwTerminate();
+            throw std::runtime_error("Failed to load OpenGL functions with GLAD.");
+        }
+
         std::cout << "Window created: " << m_properties.title
                   << " (" << m_properties.width
                   << "x" << m_properties.height << ")\n";
+        std::cout << "Loaded OpenGL "
+                  << GLAD_VERSION_MAJOR(version) << "."
+                  << GLAD_VERSION_MINOR(version) << "\n";
     }
 
     Window::~Window()
