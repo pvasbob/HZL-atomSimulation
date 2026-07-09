@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
+
 namespace hzl
 {
     class Shader
@@ -12,6 +14,7 @@ namespace hzl
         Shader& operator=(const Shader&) = delete;
 
         void bind() const;
+        void setMat4(const char* name, const glm::mat4& value) const;
 
     private:
         unsigned int m_program = 0;

@@ -1,6 +1,7 @@
 #include "hzl/renderer/Shader.h"
 
 #include <glad/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <stdexcept>
 #include <string>
@@ -72,5 +73,11 @@ namespace hzl
     void Shader::bind() const
     {
         glUseProgram(m_program);
+    }
+
+    void Shader::setMat4(const char* name, const glm::mat4& value) const
+    {
+        const int location = glGetUniformLocation(m_program, name);
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
     }
 }

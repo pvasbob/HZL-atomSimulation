@@ -2,6 +2,7 @@
 
 #include "hzl/renderer/Mesh.h"
 #include "hzl/renderer/Shader.h"
+#include "hzl/scene/Transform.h"
 
 #include <memory>
 
@@ -22,5 +23,6 @@ namespace hzl
     private:
         std::unique_ptr<Mesh> m_mesh;
         std::unique_ptr<Shader> m_shader;
+        Transform m_transform;
     };
 }

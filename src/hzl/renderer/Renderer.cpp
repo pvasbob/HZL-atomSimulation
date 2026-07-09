@@ -19,10 +19,12 @@ namespace hzl
 
             out vec3 v_color;
 
+            uniform mat4 u_model;
+
             void main()
             {
                 v_color = a_color;
-                gl_Position = vec4(a_position, 1.0);
+                gl_Position = u_model * vec4(a_position, 1.0);
             }
         )";
 
@@ -80,6 +82,7 @@ namespace hzl
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_shader->bind();
+        m_shader->setMat4("u_model", m_transform.matrix());
         m_mesh->draw();
     }
 
