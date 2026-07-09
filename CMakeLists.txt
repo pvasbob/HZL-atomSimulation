@@ -6,6 +6,20 @@ project(HZLAtomSimulation
     LANGUAGES CXX
 )
 
+include(FetchContent)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+)
+
+FetchContent_MakeAvailable(glfw)
+
 add_executable(HZLAtomSimulation
     src/hzl/core/Application.cpp
     src/hzl/core/Application.h
@@ -23,6 +37,11 @@ target_include_directories(HZLAtomSimulation
 target_compile_features(HZLAtomSimulation
     PRIVATE
         cxx_std_20
+)
+
+target_link_libraries(HZLAtomSimulation
+    PRIVATE
+        glfw
 )
 
 if(MSVC)
