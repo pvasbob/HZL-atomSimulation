@@ -12,7 +12,7 @@ namespace hzl
 
     void Application::run()
     {
-        std::cout << "HZL Atom Simulation running...\n";
+        initialize();
 
         using Clock = std::chrono::steady_clock;
         auto lastFrameTime = Clock::now();
@@ -25,18 +25,33 @@ namespace hzl
 
             const Timestep timestep(elapsedTime.count());
 
-            update(timestep);
-            render();
+            runFrame(timestep);
 
             ++m_frameIndex;
 
-            if (m_frameIndex >= 5)
+            if (shouldClose())
             {
                 m_running = false;
             }
         }
 
+        shutdown();
+    }
+
+    void Application::initialize()
+    {
+        std::cout << "HZL Atom Simulation starting up...\n";
+    }
+
+    void Application::shutdown()
+    {
         std::cout << "Application shutting down.\n";
+    }
+
+    void Application::runFrame(Timestep timestep)
+    {
+        update(timestep);
+        render();
     }
 
     void Application::update(Timestep timestep)
@@ -49,5 +64,10 @@ namespace hzl
     void Application::render()
     {
         std::cout << "Frame " << m_frameIndex << ": render frame\n";
+    }
+
+    bool Application::shouldClose() const
+    {
+        return m_frameIndex >= 5;
     }
 }
