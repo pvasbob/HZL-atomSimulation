@@ -1,6 +1,7 @@
 #include "hzl/renderer/Renderer.h"
 
 #include <glad/gl.h>
+#include <glm/vec3.hpp>
 
 #include <array>
 #include <iostream>
@@ -73,7 +74,9 @@ namespace hzl
 
     void Renderer::beginFrame()
     {
-        glClearColor(0.05f, 0.08f, 0.12f, 1.0f);
+        constexpr glm::vec3 clearColor(0.05f, 0.08f, 0.12f);
+
+        glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_shader->bind();

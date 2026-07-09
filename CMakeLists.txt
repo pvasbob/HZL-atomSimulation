@@ -24,7 +24,14 @@ FetchContent_Declare(
     GIT_TAG v2.0.8
 )
 
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.3
+)
+
 FetchContent_MakeAvailable(glfw)
+FetchContent_MakeAvailable(glm)
 FetchContent_Populate(glad)
 
 set(GLAD_SOURCES_DIR ${glad_SOURCE_DIR})
@@ -77,6 +84,7 @@ target_compile_features(HZLAtomSimulation
 target_link_libraries(HZLAtomSimulation
     PRIVATE
         glfw
+        glm::glm
         glad_gl_core_33
         OpenGL::GL
 )
