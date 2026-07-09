@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hzl/renderer/BufferLayout.h"
+
 namespace hzl
 {
     class VertexArray
@@ -14,11 +16,7 @@ namespace hzl
         void bind() const;
         void unbind() const;
 
-        void addFloatAttribute(
-            unsigned int index,
-            int componentCount,
-            int strideInBytes,
-            const void* offset) const;
+        void setLayout(const BufferLayout& layout) const;
 
     private:
         unsigned int m_handle = 0;

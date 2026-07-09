@@ -24,13 +24,18 @@ namespace hzl
         glBindVertexArray(0);
     }
 
-    void VertexArray::addFloatAttribute(
-        unsigned int index,
-        int componentCount,
-        int strideInBytes,
-        const void* offset) const
+    void VertexArray::setLayout(const BufferLayout& layout) const
     {
-        glVertexAttribPointer(index, componentCount, GL_FLOAT, GL_FALSE, strideInBytes, offset);
-        glEnableVertexAttribArray(index);
+        for (const BufferElement& element : layout.elements())
+        {
+            glVertexAttribPointer(
+                element.index,
+                element.componentCount,
+                GL_FLOAT,
+                GL_FALSE,
+                static_cast<GLsizei>(layout.stride()),
+                reinterpret_cast<const void*>(element.offset));
+            glEnableVertexAttribArray(element.index);
+        }
     }
 }

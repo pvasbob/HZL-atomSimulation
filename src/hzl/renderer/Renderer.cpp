@@ -56,12 +56,11 @@ namespace hzl
         m_vertexArray->bind();
         m_vertexBuffer->bind();
 
-        m_vertexArray->addFloatAttribute(0, 3, 6 * sizeof(float), nullptr);
-        m_vertexArray->addFloatAttribute(
-            1,
-            3,
-            6 * sizeof(float),
-            reinterpret_cast<const void*>(3 * sizeof(float)));
+        const BufferLayout layout = {
+            {0, 3, 0},
+            {1, 3, 3 * sizeof(float)},
+        };
+        m_vertexArray->setLayout(layout);
 
         m_vertexBuffer->unbind();
         m_vertexArray->unbind();
