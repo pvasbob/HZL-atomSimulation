@@ -2,6 +2,8 @@
 
 #include <string>
 
+struct GLFWwindow;
+
 namespace hzl
 {
     struct WindowProperties
@@ -15,6 +17,10 @@ namespace hzl
     {
     public:
         explicit Window(WindowProperties properties);
+        ~Window();
+
+        Window(const Window&) = delete;
+        Window& operator=(const Window&) = delete;
 
         void onUpdate();
 
@@ -23,6 +29,6 @@ namespace hzl
 
     private:
         WindowProperties m_properties;
-        int m_updateCount = 0;
+        GLFWwindow* m_handle = nullptr;
     };
 }

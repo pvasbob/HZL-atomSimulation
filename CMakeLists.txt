@@ -20,6 +20,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
+find_package(OpenGL REQUIRED)
+
 add_executable(HZLAtomSimulation
     src/hzl/core/Application.cpp
     src/hzl/core/Application.h
@@ -42,6 +44,7 @@ target_compile_features(HZLAtomSimulation
 target_link_libraries(HZLAtomSimulation
     PRIVATE
         glfw
+        OpenGL::GL
 )
 
 if(MSVC)

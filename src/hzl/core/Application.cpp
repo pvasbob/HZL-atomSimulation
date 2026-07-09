@@ -1,5 +1,7 @@
 #include "hzl/core/Application.h"
 
+#include <GLFW/glfw3.h>
+
 #include <chrono>
 #include <iostream>
 
@@ -59,14 +61,17 @@ namespace hzl
 
     void Application::update(Timestep timestep)
     {
-        std::cout << "Frame " << m_frameIndex
-                  << ": update simulation, dt = "
-                  << timestep.milliseconds() << " ms\n";
+        if (m_frameIndex == 0)
+        {
+            std::cout << "First frame dt = "
+                      << timestep.milliseconds() << " ms\n";
+        }
     }
 
     void Application::render()
     {
-        std::cout << "Frame " << m_frameIndex << ": render frame\n";
+        glClearColor(0.05f, 0.08f, 0.12f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
 
     bool Application::shouldClose() const
