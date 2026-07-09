@@ -50,17 +50,25 @@ namespace hzl
     {
         glEnable(GL_DEPTH_TEST);
 
-        constexpr std::array<float, 24> vertices = {
+        constexpr std::array<float, 48> vertices = {
             // position             // color
-            -0.5f,  0.5f, 0.0f,     0.95f, 0.35f, 0.25f,
-            -0.5f, -0.5f, 0.0f,     0.20f, 0.75f, 0.45f,
-             0.5f, -0.5f, 0.0f,     0.25f, 0.45f, 0.95f,
-             0.5f,  0.5f, 0.0f,     0.95f, 0.85f, 0.25f,
+            -0.5f, -0.5f, -0.5f,    0.95f, 0.35f, 0.25f,
+             0.5f, -0.5f, -0.5f,    0.20f, 0.75f, 0.45f,
+             0.5f,  0.5f, -0.5f,    0.25f, 0.45f, 0.95f,
+            -0.5f,  0.5f, -0.5f,    0.95f, 0.85f, 0.25f,
+            -0.5f, -0.5f,  0.5f,    0.95f, 0.25f, 0.65f,
+             0.5f, -0.5f,  0.5f,    0.25f, 0.85f, 0.85f,
+             0.5f,  0.5f,  0.5f,    0.80f, 0.45f, 0.95f,
+            -0.5f,  0.5f,  0.5f,    0.55f, 0.95f, 0.35f,
         };
 
-        constexpr std::array<unsigned int, 6> indices = {
-            0, 1, 2,
-            0, 2, 3,
+        constexpr std::array<unsigned int, 36> indices = {
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4,
+            0, 4, 7, 7, 3, 0,
+            1, 5, 6, 6, 2, 1,
+            3, 2, 6, 6, 7, 3,
+            0, 1, 5, 5, 4, 0,
         };
 
         const BufferLayout layout = {
@@ -85,6 +93,8 @@ namespace hzl
     void Renderer::update(Timestep timestep)
     {
         constexpr float rotationSpeed = glm::pi<float>() * 0.5f;
+        m_transform.rotation.x += rotationSpeed * 0.65f * timestep.seconds();
+        m_transform.rotation.y += rotationSpeed * timestep.seconds();
         m_transform.rotation.z += rotationSpeed * timestep.seconds();
     }
 
