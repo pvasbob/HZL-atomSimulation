@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hzl/core/Timestep.h"
+
 namespace hzl
 {
     class Application
@@ -10,7 +12,7 @@ namespace hzl
         void run();
 
     private:
-        void update();
+        void update(Timestep timestep);
         void render();
 
     private:

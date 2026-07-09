@@ -1,5 +1,6 @@
 #include "hzl/core/Application.h"
 
+#include <chrono>
 #include <iostream>
 
 namespace hzl
@@ -13,9 +14,18 @@ namespace hzl
     {
         std::cout << "HZL Atom Simulation running...\n";
 
+        using Clock = std::chrono::steady_clock;
+        auto lastFrameTime = Clock::now();
+
         while (m_running)
         {
-            update();
+            const auto currentFrameTime = Clock::now();
+            const std::chrono::duration<float> elapsedTime = currentFrameTime - lastFrameTime;
+            lastFrameTime = currentFrameTime;
+
+            const Timestep timestep(elapsedTime.count());
+
+            update(timestep);
             render();
 
             ++m_frameIndex;
@@ -29,9 +39,11 @@ namespace hzl
         std::cout << "Application shutting down.\n";
     }
 
-    void Application::update()
+    void Application::update(Timestep timestep)
     {
-        std::cout << "Frame " << m_frameIndex << ": update simulation\n";
+        std::cout << "Frame " << m_frameIndex
+                  << ": update simulation, dt = "
+                  << timestep.milliseconds() << " ms\n";
     }
 
     void Application::render()
