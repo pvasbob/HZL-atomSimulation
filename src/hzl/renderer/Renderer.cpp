@@ -1,6 +1,7 @@
 #include "hzl/renderer/Renderer.h"
 
 #include <glad/gl.h>
+#include <glm/ext/scalar_constants.hpp>
 #include <glm/vec3.hpp>
 
 #include <array>
@@ -72,6 +73,12 @@ namespace hzl
 
     Renderer::~Renderer()
     {
+    }
+
+    void Renderer::update(Timestep timestep)
+    {
+        constexpr float rotationSpeed = glm::pi<float>() * 0.5f;
+        m_transform.rotation.z += rotationSpeed * timestep.seconds();
     }
 
     void Renderer::beginFrame()

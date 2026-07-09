@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hzl/core/Timestep.h"
 #include "hzl/renderer/Mesh.h"
 #include "hzl/renderer/Shader.h"
 #include "hzl/scene/Transform.h"
@@ -17,6 +18,7 @@ namespace hzl
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
 
+        void update(Timestep timestep);
         void beginFrame();
         void endFrame();
 

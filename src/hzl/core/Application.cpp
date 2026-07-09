@@ -59,6 +59,8 @@ namespace hzl
 
     void Application::update(Timestep timestep)
     {
+        m_renderer.update(timestep);
+
         if (m_frameIndex == 0)
         {
             std::cout << "First frame dt = "
