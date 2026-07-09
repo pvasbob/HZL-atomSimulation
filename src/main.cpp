@@ -1,7 +1,9 @@
-#include <iostream>
+#include "hzl/core/Application.h"
 
 int main()
 {
-    std::cout << "HZL Atom Simulation starting...\n";
+    hzl::Application app;
+    app.run();
+
     return 0;
 }

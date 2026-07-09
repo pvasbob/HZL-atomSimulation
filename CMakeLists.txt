@@ -7,7 +7,14 @@ project(HZLAtomSimulation
 )
 
 add_executable(HZLAtomSimulation
+    src/hzl/core/Application.cpp
+    src/hzl/core/Application.h
     src/main.cpp
+)
+
+target_include_directories(HZLAtomSimulation
+    PRIVATE
+        src
 )
 
 target_compile_features(HZLAtomSimulation
