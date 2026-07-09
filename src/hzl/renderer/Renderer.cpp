@@ -2,6 +2,7 @@
 
 #include <glad/gl.h>
 #include <glm/ext/scalar_constants.hpp>
+#include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
 #include <array>
@@ -21,11 +22,12 @@ namespace hzl
             out vec3 v_color;
 
             uniform mat4 u_model;
+            uniform mat4 u_viewProjection;
 
             void main()
             {
                 v_color = a_color;
-                gl_Position = u_model * vec4(a_position, 1.0);
+                gl_Position = u_viewProjection * u_model * vec4(a_position, 1.0);
             }
         )";
 
@@ -43,7 +45,8 @@ namespace hzl
     }
 
     Renderer::Renderer()
-        : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource))
+        : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource)),
+          m_camera(1280.0f / 720.0f, glm::radians(45.0f), 0.1f, 100.0f)
     {
         constexpr std::array<float, 18> vertices = {
             // position             // color
@@ -90,6 +93,7 @@ namespace hzl
 
         m_shader->bind();
         m_shader->setMat4("u_model", m_transform.matrix());
+        m_shader->setMat4("u_viewProjection", m_camera.viewProjection());
         m_mesh->draw();
     }
 
