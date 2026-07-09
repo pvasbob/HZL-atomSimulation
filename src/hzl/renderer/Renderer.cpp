@@ -48,13 +48,21 @@ namespace hzl
              0.5f, -0.5f, 0.0f,     0.25f, 0.45f, 0.95f,
         };
 
+        constexpr std::array<unsigned int, 3> indices = {
+            0, 1, 2,
+        };
+
         m_vertexArray = std::make_unique<VertexArray>();
         m_vertexBuffer = std::make_unique<VertexBuffer>(
             vertices.data(),
             vertices.size() * sizeof(float));
+        m_indexBuffer = std::make_unique<IndexBuffer>(
+            indices.data(),
+            indices.size());
 
         m_vertexArray->bind();
         m_vertexBuffer->bind();
+        m_indexBuffer->bind();
 
         const BufferLayout layout = {
             {0, 3, 0},
@@ -79,7 +87,12 @@ namespace hzl
 
         m_shader->bind();
         m_vertexArray->bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        m_indexBuffer->bind();
+        glDrawElements(
+            GL_TRIANGLES,
+            static_cast<GLsizei>(m_indexBuffer->count()),
+            GL_UNSIGNED_INT,
+            nullptr);
         m_vertexArray->unbind();
     }
 
