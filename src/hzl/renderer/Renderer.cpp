@@ -48,40 +48,29 @@ namespace hzl
              0.5f, -0.5f, 0.0f,     0.25f, 0.45f, 0.95f,
         };
 
-        glGenVertexArrays(1, &m_vertexArray);
-        glGenBuffers(1, &m_vertexBuffer);
-
-        glBindVertexArray(m_vertexArray);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            static_cast<GLsizeiptr>(vertices.size() * sizeof(float)),
+        m_vertexArray = std::make_unique<VertexArray>();
+        m_vertexBuffer = std::make_unique<VertexBuffer>(
             vertices.data(),
-            GL_STATIC_DRAW);
+            vertices.size() * sizeof(float));
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-        glEnableVertexAttribArray(0);
+        m_vertexArray->bind();
+        m_vertexBuffer->bind();
 
-        glVertexAttribPointer(
+        m_vertexArray->addFloatAttribute(0, 3, 6 * sizeof(float), nullptr);
+        m_vertexArray->addFloatAttribute(
             1,
             3,
-            GL_FLOAT,
-            GL_FALSE,
             6 * sizeof(float),
             reinterpret_cast<const void*>(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        m_vertexBuffer->unbind();
+        m_vertexArray->unbind();
 
         std::cout << "Renderer initialized.\n";
     }
 
     Renderer::~Renderer()
     {
-        glDeleteBuffers(1, &m_vertexBuffer);
-        glDeleteVertexArrays(1, &m_vertexArray);
     }
 
     void Renderer::beginFrame()
@@ -90,9 +79,9 @@ namespace hzl
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_shader->bind();
-        glBindVertexArray(m_vertexArray);
+        m_vertexArray->bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
+        m_vertexArray->unbind();
     }
 
     void Renderer::endFrame()

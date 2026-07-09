@@ -1,6 +1,8 @@
 #pragma once
 
 #include "hzl/renderer/Shader.h"
+#include "hzl/renderer/VertexArray.h"
+#include "hzl/renderer/VertexBuffer.h"
 
 #include <memory>
 
@@ -19,8 +21,8 @@ namespace hzl
         void endFrame();
 
     private:
-        unsigned int m_vertexArray = 0;
-        unsigned int m_vertexBuffer = 0;
+        std::unique_ptr<VertexArray> m_vertexArray;
+        std::unique_ptr<VertexBuffer> m_vertexBuffer;
         std::unique_ptr<Shader> m_shader;
     };
 }

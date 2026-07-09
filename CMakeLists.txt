@@ -48,6 +48,10 @@ add_executable(HZLAtomSimulation
     src/hzl/renderer/Renderer.h
     src/hzl/renderer/Shader.cpp
     src/hzl/renderer/Shader.h
+    src/hzl/renderer/VertexArray.cpp
+    src/hzl/renderer/VertexArray.h
+    src/hzl/renderer/VertexBuffer.cpp
+    src/hzl/renderer/VertexBuffer.h
     src/main.cpp
 )
 
