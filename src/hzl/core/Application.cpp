@@ -1,7 +1,5 @@
 #include "hzl/core/Application.h"
 
-#include <glad/gl.h>
-
 #include <chrono>
 #include <iostream>
 
@@ -70,8 +68,8 @@ namespace hzl
 
     void Application::render()
     {
-        glClearColor(0.05f, 0.08f, 0.12f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        m_renderer.beginFrame();
+        m_renderer.endFrame();
     }
 
     bool Application::shouldClose() const

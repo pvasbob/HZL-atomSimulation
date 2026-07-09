@@ -2,6 +2,7 @@
 
 #include "hzl/core/Timestep.h"
 #include "hzl/platform/Window.h"
+#include "hzl/renderer/Renderer.h"
 
 namespace hzl
 {
@@ -23,6 +24,7 @@ namespace hzl
 
     private:
         Window m_window;
+        Renderer m_renderer;
         bool m_running = true;
         int m_frameIndex = 0;
     };
