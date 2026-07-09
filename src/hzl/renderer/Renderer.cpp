@@ -51,7 +51,7 @@ namespace hzl
     {
         glEnable(GL_DEPTH_TEST);
 
-        m_mesh = MeshFactory::createCube();
+        m_mesh = MeshFactory::createSphere(0.5f, 24, 32);
 
         std::cout << "Renderer initialized.\n";
     }
