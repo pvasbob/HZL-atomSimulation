@@ -6,6 +6,7 @@
 namespace hzl
 {
     Application::Application()
+        : m_window(WindowProperties{})
     {
         std::cout << "Application created.\n";
     }
@@ -26,6 +27,8 @@ namespace hzl
             const Timestep timestep(elapsedTime.count());
 
             runFrame(timestep);
+
+            m_window.onUpdate();
 
             ++m_frameIndex;
 
@@ -68,6 +71,6 @@ namespace hzl
 
     bool Application::shouldClose() const
     {
-        return m_frameIndex >= 5;
+        return m_window.shouldClose();
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hzl/core/Timestep.h"
+#include "hzl/platform/Window.h"
 
 namespace hzl
 {
@@ -21,6 +22,7 @@ namespace hzl
         bool shouldClose() const;
 
     private:
+        Window m_window;
         bool m_running = true;
         int m_frameIndex = 0;
     };

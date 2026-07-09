@@ -10,6 +10,8 @@ add_executable(HZLAtomSimulation
     src/hzl/core/Application.cpp
     src/hzl/core/Application.h
     src/hzl/core/Timestep.h
+    src/hzl/platform/Window.cpp
+    src/hzl/platform/Window.h
     src/main.cpp
 )
 
