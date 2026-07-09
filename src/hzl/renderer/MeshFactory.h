@@ -10,5 +10,9 @@ namespace hzl
     {
     public:
         static std::unique_ptr<Mesh> createCube();
+        static std::unique_ptr<Mesh> createSphere(
+            float radius = 0.5f,
+            unsigned int latitudeSegments = 16,
+            unsigned int longitudeSegments = 32);
     };
 }
