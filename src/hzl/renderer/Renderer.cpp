@@ -48,15 +48,17 @@ namespace hzl
         : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource)),
           m_camera(1280.0f / 720.0f, glm::radians(45.0f), 0.1f, 100.0f)
     {
-        constexpr std::array<float, 18> vertices = {
+        constexpr std::array<float, 24> vertices = {
             // position             // color
-             0.0f,  0.5f, 0.0f,     0.95f, 0.35f, 0.25f,
+            -0.5f,  0.5f, 0.0f,     0.95f, 0.35f, 0.25f,
             -0.5f, -0.5f, 0.0f,     0.20f, 0.75f, 0.45f,
              0.5f, -0.5f, 0.0f,     0.25f, 0.45f, 0.95f,
+             0.5f,  0.5f, 0.0f,     0.95f, 0.85f, 0.25f,
         };
 
-        constexpr std::array<unsigned int, 3> indices = {
+        constexpr std::array<unsigned int, 6> indices = {
             0, 1, 2,
+            0, 2, 3,
         };
 
         const BufferLayout layout = {
