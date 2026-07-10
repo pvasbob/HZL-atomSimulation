@@ -47,7 +47,7 @@ namespace hzl
     {
         std::cout << "HZL Atom Simulation starting up...\n";
 
-        m_atomWorld.addAtom(AtomFactory::createOxygen16());
+        m_atomWorld.addAtom(AtomFactory::createBismuth209());
     }
 
     void Application::shutdown()
