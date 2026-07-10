@@ -80,4 +80,10 @@ namespace hzl
         const int location = glGetUniformLocation(m_program, name);
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
     }
+
+    void Shader::setVec3(const char* name, const glm::vec3& value) const
+    {
+        const int location = glGetUniformLocation(m_program, name);
+        glUniform3fv(location, 1, glm::value_ptr(value));
+    }
 }

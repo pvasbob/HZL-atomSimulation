@@ -20,14 +20,11 @@ namespace hzl
             layout (location = 0) in vec3 a_position;
             layout (location = 1) in vec3 a_color;
 
-            out vec3 v_color;
-
             uniform mat4 u_model;
             uniform mat4 u_viewProjection;
 
             void main()
             {
-                v_color = a_color;
                 gl_Position = u_viewProjection * u_model * vec4(a_position, 1.0);
             }
         )";
@@ -35,12 +32,13 @@ namespace hzl
         constexpr const char* fragmentShaderSource = R"(
             #version 330 core
 
-            in vec3 v_color;
             out vec4 frag_color;
+
+            uniform vec3 u_color;
 
             void main()
             {
-                frag_color = vec4(v_color, 1.0);
+                frag_color = vec4(u_color, 1.0);
             }
         )";
     }
@@ -51,7 +49,11 @@ namespace hzl
     {
         glEnable(GL_DEPTH_TEST);
 
-        m_mesh = MeshFactory::createSphere(0.5f, 24, 32);
+        m_atom.position = {0.0f, 0.0f, 0.0f};
+        m_atom.radius = 0.6f;
+        m_atom.color = {0.35f, 0.65f, 1.0f};
+
+        m_mesh = MeshFactory::createSphere(1.0f, 24, 32);
 
         std::cout << "Renderer initialized.\n";
     }
@@ -75,9 +77,13 @@ namespace hzl
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        m_transform.position = m_atom.position;
+        m_transform.scale = {m_atom.radius, m_atom.radius, m_atom.radius};
+
         m_shader->bind();
         m_shader->setMat4("u_model", m_transform.matrix());
         m_shader->setMat4("u_viewProjection", m_camera.viewProjection());
+        m_shader->setVec3("u_color", m_atom.color);
         m_mesh->draw();
     }
 

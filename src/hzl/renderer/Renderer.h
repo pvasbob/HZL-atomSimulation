@@ -5,6 +5,7 @@
 #include "hzl/renderer/Shader.h"
 #include "hzl/scene/Camera.h"
 #include "hzl/scene/Transform.h"
+#include "hzl/simulation/Atom.h"
 
 #include <memory>
 
@@ -27,6 +28,7 @@ namespace hzl
         std::unique_ptr<Mesh> m_mesh;
         std::unique_ptr<Shader> m_shader;
         Camera m_camera;
+        Atom m_atom;
         Transform m_transform;
     };
 }

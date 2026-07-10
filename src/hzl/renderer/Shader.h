@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 namespace hzl
 {
@@ -15,6 +16,7 @@ namespace hzl
 
         void bind() const;
         void setMat4(const char* name, const glm::mat4& value) const;
+        void setVec3(const char* name, const glm::vec3& value) const;
 
     private:
         unsigned int m_program = 0;
