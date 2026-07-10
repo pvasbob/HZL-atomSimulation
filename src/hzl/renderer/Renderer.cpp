@@ -3,6 +3,7 @@
 #include "hzl/renderer/MeshFactory.h"
 
 #include <glad/gl.h>
+#include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
@@ -153,13 +154,21 @@ namespace hzl
 
         for (const Orbital& orbital : atom.orbitals)
         {
-            if (orbital.type == OrbitalType::P)
+            switch (orbital.type)
             {
-                renderPOrbital(atom, orbital);
-                continue;
+                case OrbitalType::S:
+                    renderSOrbital(atom, orbital);
+                    break;
+                case OrbitalType::P:
+                    renderPOrbital(atom, orbital);
+                    break;
+                case OrbitalType::D:
+                    renderDOrbital(atom, orbital);
+                    break;
+                case OrbitalType::F:
+                    renderFOrbital(atom, orbital);
+                    break;
             }
-
-            renderSOrbital(atom, orbital);
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -226,14 +235,91 @@ namespace hzl
             }
 
             m_transform.position = atom.position + offset;
-            m_transform.rotation = {0.0f, 0.0f, 0.0f};
-            m_transform.scale = scale;
-
-            m_shader->setMat4("u_model", m_transform.matrix());
-            m_shader->setVec3("u_color", orbital.color);
-            m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
-            m_mesh->draw();
+            drawScaledOrbitalLobe(m_transform.position, scale, orbital);
         }
+    }
+
+    void Renderer::renderDOrbital(const Atom& atom, const Orbital& orbital)
+    {
+        const float offset = orbital.visualRadius * 0.38f;
+        const float length = orbital.visualRadius * 0.24f;
+        const float thickness = orbital.visualRadius * 0.15f;
+
+        const glm::vec3 directions[4] = {
+            {1.0f, 1.0f, 0.0f},
+            {-1.0f, 1.0f, 0.0f},
+            {1.0f, -1.0f, 0.0f},
+            {-1.0f, -1.0f, 0.0f}};
+
+        for (glm::vec3 direction : directions)
+        {
+            direction = glm::normalize(direction);
+            glm::vec3 lobePosition = atom.position;
+            glm::vec3 scale{thickness, thickness, thickness};
+
+            switch (orbital.axis)
+            {
+                case OrbitalAxis::X:
+                    lobePosition += glm::vec3{0.0f, direction.x * offset, direction.y * offset};
+                    scale.y = length;
+                    scale.z = length;
+                    break;
+                case OrbitalAxis::Y:
+                    lobePosition += glm::vec3{direction.x * offset, 0.0f, direction.y * offset};
+                    scale.x = length;
+                    scale.z = length;
+                    break;
+                case OrbitalAxis::Z:
+                case OrbitalAxis::None:
+                    lobePosition += glm::vec3{direction.x * offset, direction.y * offset, 0.0f};
+                    scale.x = length;
+                    scale.y = length;
+                    break;
+            }
+
+            drawScaledOrbitalLobe(lobePosition, scale, orbital);
+        }
+    }
+
+    void Renderer::renderFOrbital(const Atom& atom, const Orbital& orbital)
+    {
+        const float offset = orbital.visualRadius * 0.42f;
+        const float length = orbital.visualRadius * 0.20f;
+        const float thickness = orbital.visualRadius * 0.12f;
+
+        const glm::vec3 directions[8] = {
+            {1.0f, 1.0f, 1.0f},
+            {-1.0f, 1.0f, 1.0f},
+            {1.0f, -1.0f, 1.0f},
+            {-1.0f, -1.0f, 1.0f},
+            {1.0f, 1.0f, -1.0f},
+            {-1.0f, 1.0f, -1.0f},
+            {1.0f, -1.0f, -1.0f},
+            {-1.0f, -1.0f, -1.0f}};
+
+        for (glm::vec3 direction : directions)
+        {
+            direction = glm::normalize(direction);
+            const glm::vec3 lobePosition = atom.position + direction * offset;
+            const glm::vec3 scale{
+                direction.x == 0.0f ? thickness : length,
+                direction.y == 0.0f ? thickness : length,
+                direction.z == 0.0f ? thickness : length};
+
+            drawScaledOrbitalLobe(lobePosition, scale, orbital);
+        }
+    }
+
+    void Renderer::drawScaledOrbitalLobe(const glm::vec3& position, const glm::vec3& scale, const Orbital& orbital)
+    {
+        m_transform.position = position;
+        m_transform.rotation = {0.0f, 0.0f, 0.0f};
+        m_transform.scale = scale;
+
+        m_shader->setMat4("u_model", m_transform.matrix());
+        m_shader->setVec3("u_color", orbital.color);
+        m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
+        m_mesh->draw();
     }
 
     float Renderer::orbitalSurfaceAlpha(const Orbital& orbital) const

@@ -32,6 +32,9 @@ namespace hzl
         void renderNucleus(const Atom& atom);
         void renderSOrbital(const Atom& atom, const Orbital& orbital);
         void renderPOrbital(const Atom& atom, const Orbital& orbital);
+        void renderDOrbital(const Atom& atom, const Orbital& orbital);
+        void renderFOrbital(const Atom& atom, const Orbital& orbital);
+        void drawScaledOrbitalLobe(const glm::vec3& position, const glm::vec3& scale, const Orbital& orbital);
         float orbitalSurfaceAlpha(const Orbital& orbital) const;
         void updateOrbitCamera(Window& window);
         void updateCameraPosition();

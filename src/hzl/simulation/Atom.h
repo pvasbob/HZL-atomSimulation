@@ -10,7 +10,9 @@ namespace hzl
     enum class OrbitalType
     {
         S,
-        P
+        P,
+        D,
+        F
     };
 
     enum class OrbitalAxis

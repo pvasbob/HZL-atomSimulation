@@ -41,14 +41,144 @@ namespace hzl
             if (atomicNumber <= 86) { return 6; }
             return 7;
         }
+
+        struct Subshell
+        {
+            int principalQuantumNumber;
+            OrbitalType type;
+            int capacity;
+        };
+
+        constexpr std::array<Subshell, 19> subshellFillOrder{{
+            {1, OrbitalType::S, 2},
+            {2, OrbitalType::S, 2},
+            {2, OrbitalType::P, 6},
+            {3, OrbitalType::S, 2},
+            {3, OrbitalType::P, 6},
+            {4, OrbitalType::S, 2},
+            {3, OrbitalType::D, 10},
+            {4, OrbitalType::P, 6},
+            {5, OrbitalType::S, 2},
+            {4, OrbitalType::D, 10},
+            {5, OrbitalType::P, 6},
+            {6, OrbitalType::S, 2},
+            {4, OrbitalType::F, 14},
+            {5, OrbitalType::D, 10},
+            {6, OrbitalType::P, 6},
+            {7, OrbitalType::S, 2},
+            {5, OrbitalType::F, 14},
+            {6, OrbitalType::D, 10},
+            {7, OrbitalType::P, 6}
+        }};
+
+        glm::vec3 colorForOrbitalType(OrbitalType type)
+        {
+            switch (type)
+            {
+                case OrbitalType::S:
+                    return {1.00f, 0.92f, 0.08f};
+                case OrbitalType::P:
+                    return {0.10f, 1.00f, 0.22f};
+                case OrbitalType::D:
+                    return {0.20f, 0.70f, 1.00f};
+                case OrbitalType::F:
+                    return {0.92f, 0.35f, 1.00f};
+            }
+
+            return {0.70f, 0.75f, 0.85f};
+        }
+
+        float radiusForSubshell(const Subshell& subshell)
+        {
+            const float baseRadius = 0.18f + 0.105f * static_cast<float>(subshell.principalQuantumNumber);
+
+            switch (subshell.type)
+            {
+                case OrbitalType::S:
+                    return baseRadius;
+                case OrbitalType::P:
+                    return baseRadius + 0.10f;
+                case OrbitalType::D:
+                    return baseRadius + 0.17f;
+                case OrbitalType::F:
+                    return baseRadius + 0.24f;
+            }
+
+            return baseRadius;
+        }
+
+        OrbitalVisualEmphasis emphasisForSubshell(const Subshell& subshell, int highestPrincipalQuantumNumber)
+        {
+            if (subshell.principalQuantumNumber == highestPrincipalQuantumNumber)
+            {
+                return OrbitalVisualEmphasis::Active;
+            }
+
+            if (subshell.principalQuantumNumber + 1 == highestPrincipalQuantumNumber)
+            {
+                return OrbitalVisualEmphasis::Supporting;
+            }
+
+            return OrbitalVisualEmphasis::Core;
+        }
+
+        void addSubshellOrbital(
+            Atom& atom,
+            const Subshell& subshell,
+            int electronCount,
+            int highestPrincipalQuantumNumber)
+        {
+            if (electronCount <= 0)
+            {
+                return;
+            }
+
+            const OrbitalVisualEmphasis emphasis = emphasisForSubshell(subshell, highestPrincipalQuantumNumber);
+            glm::vec3 color = colorForOrbitalType(subshell.type);
+            if (emphasis == OrbitalVisualEmphasis::Core)
+            {
+                color = {0.42f, 0.46f, 0.54f};
+            }
+
+            if (subshell.type == OrbitalType::S)
+            {
+                atom.orbitals.push_back({
+                    subshell.principalQuantumNumber,
+                    subshell.type,
+                    OrbitalAxis::None,
+                    electronCount,
+                    radiusForSubshell(subshell),
+                    color,
+                    emphasis});
+                return;
+            }
+
+            const OrbitalAxis axes[3] = {OrbitalAxis::X, OrbitalAxis::Y, OrbitalAxis::Z};
+            int remainingElectrons = electronCount;
+            for (int axisIndex = 0; axisIndex < 3 && remainingElectrons > 0; ++axisIndex)
+            {
+                const int remainingAxes = 3 - axisIndex;
+                const int axisElectrons = (remainingElectrons + remainingAxes - 1) / remainingAxes;
+                atom.orbitals.push_back({
+                    subshell.principalQuantumNumber,
+                    subshell.type,
+                    axes[axisIndex],
+                    axisElectrons,
+                    radiusForSubshell(subshell),
+                    color,
+                    emphasis});
+
+                remainingElectrons -= axisElectrons;
+            }
+        }
     }
 
     Atom AtomFactory::createOxygen16()
     {
         Atom oxygen16;
         oxygen16.position = {0.0f, 0.0f, 0.0f};
-        oxygen16.nucleusRadius = 0.12f;
-        oxygen16.nucleusColor = {0.02f, 0.02f, 0.025f};
+        oxygen16.nucleusRadius = 0.045f;
+        oxygen16.nucleusColor = {1.00f, 0.05f, 0.03f};
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
         oxygen16.symbol = "O";
@@ -72,36 +202,7 @@ namespace hzl
 
     Atom AtomFactory::createBismuth209()
     {
-        Atom bismuth209;
-        bismuth209.position = {0.0f, 0.0f, 0.0f};
-        bismuth209.nucleusRadius = 0.14f;
-        bismuth209.nucleusColor = {0.015f, 0.015f, 0.020f};
-        bismuth209.atomicNumber = 83;
-        bismuth209.massNumber = 209;
-        bismuth209.symbol = "Bi";
-        bismuth209.name = "Bismuth";
-
-        // Inner closed shells are drawn as subdued context instead of 78 separate core electrons.
-        bismuth209.orbitals.push_back(
-            {1, OrbitalType::S, OrbitalAxis::None, 78, 0.30f, {0.45f, 0.50f, 0.58f}, OrbitalVisualEmphasis::Core});
-
-        // Approximate filled 5d10 as a soft spherical supporting shell until D-orbital shapes exist.
-        bismuth209.orbitals.push_back(
-            {5, OrbitalType::S, OrbitalAxis::None, 10, 0.54f, {0.36f, 0.56f, 1.00f}, OrbitalVisualEmphasis::Supporting});
-
-        bismuth209.orbitals.push_back(
-            {6, OrbitalType::S, OrbitalAxis::None, 2, 0.66f, {1.00f, 0.92f, 0.08f}, OrbitalVisualEmphasis::Supporting});
-
-        bismuth209.orbitals.push_back(
-            {6, OrbitalType::P, OrbitalAxis::X, 1, 0.88f, {0.10f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
-        bismuth209.orbitals.push_back(
-            {6, OrbitalType::P, OrbitalAxis::Y, 1, 0.88f, {0.10f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
-        bismuth209.orbitals.push_back(
-            {6, OrbitalType::P, OrbitalAxis::Z, 1, 0.88f, {0.10f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
-
-        addElectronSamples(bismuth209);
-
-        return bismuth209;
+        return createElement(83);
     }
 
     Atom AtomFactory::createElement(int atomicNumber)
@@ -113,50 +214,47 @@ namespace hzl
             return createOxygen16();
         }
 
-        if (atomicNumber == 83)
-        {
-            return createBismuth209();
-        }
-
         const ElementRecord& element = elements[static_cast<std::size_t>(atomicNumber)];
-        const int period = periodForAtomicNumber(atomicNumber);
-        const int previousClosedShellElectrons = period == 1
-            ? 0
-            : (period == 2 ? 2 : (period == 3 ? 10 : (period == 4 ? 18 : (period == 5 ? 36 : (period == 6 ? 54 : 86)))));
-        const int outerElectrons = std::max(1, atomicNumber - previousClosedShellElectrons);
-        const int activeSElectrons = std::min(2, outerElectrons);
-        const int activePElectrons = std::clamp(outerElectrons - activeSElectrons, 0, 6);
-        const int supportingElectrons = std::max(0, atomicNumber - activeSElectrons - activePElectrons);
 
         Atom atom;
         atom.position = {0.0f, 0.0f, 0.0f};
-        atom.nucleusRadius = 0.12f + 0.0006f * static_cast<float>(atomicNumber);
-        atom.nucleusColor = {0.015f, 0.015f, 0.020f};
+        atom.nucleusRadius = 0.035f + 0.00012f * static_cast<float>(atomicNumber);
+        atom.nucleusColor = {1.00f, 0.05f, 0.03f};
         atom.atomicNumber = atomicNumber;
         atom.massNumber = element.massNumber;
         atom.symbol = element.symbol;
         atom.name = element.name;
 
-        if (supportingElectrons > 0)
-        {
-            atom.orbitals.push_back(
-                {1, OrbitalType::S, OrbitalAxis::None, supportingElectrons, 0.28f, {0.45f, 0.50f, 0.58f}, OrbitalVisualEmphasis::Core});
-        }
+        int remainingElectrons = atomicNumber;
+        int highestPrincipalQuantumNumber = 1;
 
-        atom.orbitals.push_back(
-            {period, OrbitalType::S, OrbitalAxis::None, activeSElectrons, 0.48f, {1.00f, 0.92f, 0.08f}, OrbitalVisualEmphasis::Supporting});
-
-        const OrbitalAxis axes[3] = {OrbitalAxis::X, OrbitalAxis::Y, OrbitalAxis::Z};
-        for (int orbitalIndex = 0; orbitalIndex < 3; ++orbitalIndex)
+        for (const Subshell& subshell : subshellFillOrder)
         {
-            const int pElectrons = std::clamp(activePElectrons - orbitalIndex * 2, 0, 2);
-            if (pElectrons == 0)
+            if (remainingElectrons <= 0)
             {
-                continue;
+                break;
             }
 
-            atom.orbitals.push_back(
-                {period, OrbitalType::P, axes[orbitalIndex], pElectrons, 0.76f, {0.10f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
+            const int electronCount = std::min(remainingElectrons, subshell.capacity);
+            if (electronCount > 0)
+            {
+                highestPrincipalQuantumNumber = std::max(highestPrincipalQuantumNumber, subshell.principalQuantumNumber);
+            }
+
+            remainingElectrons -= electronCount;
+        }
+
+        remainingElectrons = atomicNumber;
+        for (const Subshell& subshell : subshellFillOrder)
+        {
+            if (remainingElectrons <= 0)
+            {
+                break;
+            }
+
+            const int electronCount = std::min(remainingElectrons, subshell.capacity);
+            addSubshellOrbital(atom, subshell, electronCount, highestPrincipalQuantumNumber);
+            remainingElectrons -= electronCount;
         }
 
         addElectronSamples(atom);
