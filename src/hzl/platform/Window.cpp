@@ -34,6 +34,9 @@ namespace hzl
             throw std::runtime_error("Failed to create GLFW window.");
         }
 
+        glfwSetWindowUserPointer(m_handle, this);
+        glfwSetScrollCallback(m_handle, &Window::scrollCallback);
+
         glfwMakeContextCurrent(m_handle);
         glfwSwapInterval(1);
 
@@ -78,5 +81,40 @@ namespace hzl
     const WindowProperties& Window::properties() const
     {
         return m_properties;
+    }
+
+    bool Window::isLeftMouseButtonPressed() const
+    {
+        return glfwGetMouseButton(m_handle, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    }
+
+    std::pair<double, double> Window::cursorPosition() const
+    {
+        double x = 0.0;
+        double y = 0.0;
+        glfwGetCursorPos(m_handle, &x, &y);
+
+        return {x, y};
+    }
+
+    double Window::consumeScrollDeltaY()
+    {
+        const double scrollDeltaY = m_scrollDeltaY;
+        m_scrollDeltaY = 0.0;
+
+        return scrollDeltaY;
+    }
+
+    void Window::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+    {
+        (void)xOffset;
+
+        auto* currentWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (currentWindow == nullptr)
+        {
+            return;
+        }
+
+        currentWindow->m_scrollDeltaY += yOffset;
     }
 }

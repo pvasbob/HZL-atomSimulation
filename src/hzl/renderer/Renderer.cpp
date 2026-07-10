@@ -6,6 +6,8 @@
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -99,6 +101,7 @@ namespace hzl
 
         m_mesh = MeshFactory::createSphere(1.0f, 24, 32);
         initializeElectronCloudRenderer();
+        updateCameraPosition();
 
         std::cout << "Renderer initialized.\n";
     }
@@ -109,9 +112,10 @@ namespace hzl
         glDeleteVertexArrays(1, &m_pointVertexArray);
     }
 
-    void Renderer::update(Timestep timestep)
+    void Renderer::update(Timestep timestep, Window& window)
     {
         (void)timestep;
+        updateOrbitCamera(window);
     }
 
     void Renderer::beginFrame()
@@ -237,6 +241,53 @@ namespace hzl
         }
 
         return 0.18f;
+    }
+
+    void Renderer::updateOrbitCamera(Window& window)
+    {
+        const auto [cursorX, cursorY] = window.cursorPosition();
+
+        if (window.isLeftMouseButtonPressed())
+        {
+            if (m_isOrbiting)
+            {
+                constexpr float orbitSensitivity = 0.006f;
+                const double deltaX = cursorX - m_lastCursorX;
+                const double deltaY = cursorY - m_lastCursorY;
+
+                m_cameraYaw -= static_cast<float>(deltaX) * orbitSensitivity;
+                m_cameraPitch -= static_cast<float>(deltaY) * orbitSensitivity;
+                m_cameraPitch = std::clamp(m_cameraPitch, -1.35f, 1.35f);
+            }
+
+            m_isOrbiting = true;
+        }
+        else
+        {
+            m_isOrbiting = false;
+        }
+
+        m_lastCursorX = cursorX;
+        m_lastCursorY = cursorY;
+
+        const double scrollDeltaY = window.consumeScrollDeltaY();
+        if (scrollDeltaY != 0.0)
+        {
+            m_cameraDistance -= static_cast<float>(scrollDeltaY) * 0.18f;
+            m_cameraDistance = std::clamp(m_cameraDistance, 1.4f, 8.0f);
+        }
+
+        updateCameraPosition();
+    }
+
+    void Renderer::updateCameraPosition()
+    {
+        const float horizontalDistance = m_cameraDistance * std::cos(m_cameraPitch);
+
+        m_camera.setPosition({
+            horizontalDistance * std::sin(m_cameraYaw),
+            m_cameraDistance * std::sin(m_cameraPitch),
+            horizontalDistance * std::cos(m_cameraYaw)});
     }
 
     void Renderer::endFrame()

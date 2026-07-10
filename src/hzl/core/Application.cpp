@@ -64,7 +64,7 @@ namespace hzl
     void Application::update(Timestep timestep)
     {
         m_atomWorld.update(timestep);
-        m_renderer.update(timestep);
+        m_renderer.update(timestep, m_window);
 
         if (m_frameIndex == 0)
         {
