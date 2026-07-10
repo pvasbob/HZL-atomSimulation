@@ -69,6 +69,7 @@ add_executable(HZLAtomSimulation
     src/hzl/scene/Camera.h
     src/hzl/scene/Transform.h
     src/hzl/simulation/Atom.h
+    src/hzl/simulation/AtomWorld.h
     src/main.cpp
 )
 

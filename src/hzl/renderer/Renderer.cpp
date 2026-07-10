@@ -49,10 +49,6 @@ namespace hzl
     {
         glEnable(GL_DEPTH_TEST);
 
-        m_atom.position = {0.0f, 0.0f, 0.0f};
-        m_atom.radius = 0.6f;
-        m_atom.color = {0.35f, 0.65f, 1.0f};
-
         m_mesh = MeshFactory::createSphere(1.0f, 24, 32);
 
         std::cout << "Renderer initialized.\n";
@@ -76,15 +72,22 @@ namespace hzl
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 
-        m_transform.position = m_atom.position;
-        m_transform.scale = {m_atom.radius, m_atom.radius, m_atom.radius};
-
+    void Renderer::renderAtoms(const std::vector<Atom>& atoms)
+    {
         m_shader->bind();
-        m_shader->setMat4("u_model", m_transform.matrix());
         m_shader->setMat4("u_viewProjection", m_camera.viewProjection());
-        m_shader->setVec3("u_color", m_atom.color);
-        m_mesh->draw();
+
+        for (const Atom& atom : atoms)
+        {
+            m_transform.position = atom.position;
+            m_transform.scale = {atom.radius, atom.radius, atom.radius};
+
+            m_shader->setMat4("u_model", m_transform.matrix());
+            m_shader->setVec3("u_color", atom.color);
+            m_mesh->draw();
+        }
     }
 
     void Renderer::endFrame()

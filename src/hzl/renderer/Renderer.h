@@ -8,6 +8,7 @@
 #include "hzl/simulation/Atom.h"
 
 #include <memory>
+#include <vector>
 
 namespace hzl
 {
@@ -22,13 +23,13 @@ namespace hzl
 
         void update(Timestep timestep);
         void beginFrame();
+        void renderAtoms(const std::vector<Atom>& atoms);
         void endFrame();
 
     private:
         std::unique_ptr<Mesh> m_mesh;
         std::unique_ptr<Shader> m_shader;
         Camera m_camera;
-        Atom m_atom;
         Transform m_transform;
     };
 }

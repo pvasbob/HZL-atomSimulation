@@ -44,6 +44,13 @@ namespace hzl
     void Application::initialize()
     {
         std::cout << "HZL Atom Simulation starting up...\n";
+
+        Atom atom;
+        atom.position = {0.0f, 0.0f, 0.0f};
+        atom.radius = 0.6f;
+        atom.color = {0.35f, 0.65f, 1.0f};
+
+        m_atomWorld.addAtom(atom);
     }
 
     void Application::shutdown()
@@ -71,6 +78,7 @@ namespace hzl
     void Application::render()
     {
         m_renderer.beginFrame();
+        m_renderer.renderAtoms(m_atomWorld.atoms());
         m_renderer.endFrame();
     }
 

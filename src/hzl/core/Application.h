@@ -3,6 +3,7 @@
 #include "hzl/core/Timestep.h"
 #include "hzl/platform/Window.h"
 #include "hzl/renderer/Renderer.h"
+#include "hzl/simulation/AtomWorld.h"
 
 namespace hzl
 {
@@ -25,6 +26,7 @@ namespace hzl
     private:
         Window m_window;
         Renderer m_renderer;
+        AtomWorld m_atomWorld;
         bool m_running = true;
         int m_frameIndex = 0;
     };
