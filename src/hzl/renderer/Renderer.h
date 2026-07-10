@@ -27,6 +27,11 @@ namespace hzl
         void endFrame();
 
     private:
+        void renderOrbitalMeshes(const Atom& atom);
+        void renderNucleus(const Atom& atom);
+        void renderSOrbital(const Atom& atom, const Orbital& orbital);
+        void renderPOrbital(const Atom& atom, const Orbital& orbital);
+        float orbitalSurfaceAlpha(const Orbital& orbital) const;
         void initializeElectronCloudRenderer();
         void uploadElectronCloud(const std::vector<Atom>& atoms);
         void drawElectronCloud();

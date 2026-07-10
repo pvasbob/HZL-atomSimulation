@@ -129,20 +129,114 @@ namespace hzl
 
         for (const Atom& atom : atoms)
         {
-            m_transform.position = atom.position;
-            m_transform.scale = {
-                atom.nucleusRadius,
-                atom.nucleusRadius,
-                atom.nucleusRadius};
+            renderOrbitalMeshes(atom);
+            renderNucleus(atom);
+        }
+    }
 
-            m_shader->setMat4("u_model", m_transform.matrix());
-            m_shader->setVec3("u_color", atom.nucleusColor);
-            m_shader->setFloat("u_alpha", 1.0f);
-            m_mesh->draw();
+    void Renderer::renderOrbitalMeshes(const Atom& atom)
+    {
+        glDepthMask(GL_FALSE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        for (const Orbital& orbital : atom.orbitals)
+        {
+            if (orbital.type == OrbitalType::P)
+            {
+                renderPOrbital(atom, orbital);
+                continue;
+            }
+
+            renderSOrbital(atom, orbital);
         }
 
-        uploadElectronCloud(atoms);
-        drawElectronCloud();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDepthMask(GL_TRUE);
+    }
+
+    void Renderer::renderNucleus(const Atom& atom)
+    {
+        m_transform.position = atom.position;
+        m_transform.rotation = {0.0f, 0.0f, 0.0f};
+        m_transform.scale = {
+            atom.nucleusRadius,
+            atom.nucleusRadius,
+            atom.nucleusRadius};
+
+        m_shader->setMat4("u_model", m_transform.matrix());
+        m_shader->setVec3("u_color", atom.nucleusColor);
+        m_shader->setFloat("u_alpha", 1.0f);
+        m_mesh->draw();
+    }
+
+    void Renderer::renderSOrbital(const Atom& atom, const Orbital& orbital)
+    {
+        m_transform.position = atom.position;
+        m_transform.rotation = {0.0f, 0.0f, 0.0f};
+        m_transform.scale = {
+            orbital.visualRadius,
+            orbital.visualRadius,
+            orbital.visualRadius};
+
+        m_shader->setMat4("u_model", m_transform.matrix());
+        m_shader->setVec3("u_color", orbital.color);
+        m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
+        m_mesh->draw();
+    }
+
+    void Renderer::renderPOrbital(const Atom& atom, const Orbital& orbital)
+    {
+        const float lobeOffset = orbital.visualRadius * 0.48f;
+        const float lobeLength = orbital.visualRadius * 0.34f;
+        const float lobeThickness = orbital.visualRadius * 0.20f;
+
+        for (const float side : {-1.0f, 1.0f})
+        {
+            glm::vec3 offset{0.0f, 0.0f, 0.0f};
+            glm::vec3 scale{lobeThickness, lobeThickness, lobeThickness};
+
+            switch (orbital.axis)
+            {
+                case OrbitalAxis::X:
+                    offset.x = side * lobeOffset;
+                    scale.x = lobeLength;
+                    break;
+                case OrbitalAxis::Y:
+                    offset.y = side * lobeOffset;
+                    scale.y = lobeLength;
+                    break;
+                case OrbitalAxis::Z:
+                    offset.z = side * lobeOffset;
+                    scale.z = lobeLength;
+                    break;
+                case OrbitalAxis::None:
+                    break;
+            }
+
+            m_transform.position = atom.position + offset;
+            m_transform.rotation = {0.0f, 0.0f, 0.0f};
+            m_transform.scale = scale;
+
+            m_shader->setMat4("u_model", m_transform.matrix());
+            m_shader->setVec3("u_color", orbital.color);
+            m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
+            m_mesh->draw();
+        }
+    }
+
+    float Renderer::orbitalSurfaceAlpha(const Orbital& orbital) const
+    {
+        switch (orbital.visualEmphasis)
+        {
+            case OrbitalVisualEmphasis::Core:
+                return 0.22f;
+            case OrbitalVisualEmphasis::Supporting:
+                return 0.32f;
+            case OrbitalVisualEmphasis::Active:
+                return 0.48f;
+        }
+
+        return 0.18f;
     }
 
     void Renderer::endFrame()
