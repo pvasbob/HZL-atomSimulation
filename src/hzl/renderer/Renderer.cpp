@@ -42,6 +42,43 @@ namespace hzl
                 frag_color = vec4(u_color, u_alpha);
             }
         )";
+
+        glm::vec3 orbitalAxisDirection(OrbitalAxis axis)
+        {
+            switch (axis)
+            {
+                case OrbitalAxis::X:
+                    return {1.0f, 0.0f, 0.0f};
+                case OrbitalAxis::Y:
+                    return {0.0f, 1.0f, 0.0f};
+                case OrbitalAxis::Z:
+                    return {0.0f, 0.0f, 1.0f};
+                case OrbitalAxis::None:
+                    return {0.0f, 0.0f, 0.0f};
+            }
+
+            return {0.0f, 0.0f, 0.0f};
+        }
+
+        glm::vec3 pOrbitalLobeScale(OrbitalAxis axis, float radius)
+        {
+            const float length = radius * 0.42f;
+            const float thickness = radius * 0.18f;
+
+            switch (axis)
+            {
+                case OrbitalAxis::X:
+                    return {length, thickness, thickness};
+                case OrbitalAxis::Y:
+                    return {thickness, length, thickness};
+                case OrbitalAxis::Z:
+                    return {thickness, thickness, length};
+                case OrbitalAxis::None:
+                    return {thickness, thickness, thickness};
+            }
+
+            return {thickness, thickness, thickness};
+        }
     }
 
     Renderer::Renderer()
@@ -99,24 +136,45 @@ namespace hzl
 
             for (const Orbital& orbital : atom.orbitals)
             {
-                if (orbital.type != OrbitalType::S)
+                if (orbital.type == OrbitalType::S)
+                {
+                    m_transform.position = atom.position;
+                    m_transform.scale = {
+                        orbital.visualRadius,
+                        orbital.visualRadius,
+                        orbital.visualRadius};
+
+                    m_shader->setMat4("u_model", m_transform.matrix());
+                    m_shader->setVec3("u_color", orbital.color);
+                    m_shader->setFloat("u_alpha", 0.35f);
+                    m_mesh->draw();
+                }
+            }
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+            for (const Orbital& orbital : atom.orbitals)
+            {
+                if (orbital.type != OrbitalType::P)
                 {
                     continue;
                 }
 
-                m_transform.position = atom.position;
-                m_transform.scale = {
-                    orbital.visualRadius,
-                    orbital.visualRadius,
-                    orbital.visualRadius};
+                const glm::vec3 axis = orbitalAxisDirection(orbital.axis);
+                const glm::vec3 lobeScale = pOrbitalLobeScale(orbital.axis, orbital.visualRadius);
+                const float lobeOffset = orbital.visualRadius * 0.36f;
 
-                m_shader->setMat4("u_model", m_transform.matrix());
-                m_shader->setVec3("u_color", orbital.color);
-                m_shader->setFloat("u_alpha", 0.35f);
-                m_mesh->draw();
+                for (float side : {-1.0f, 1.0f})
+                {
+                    m_transform.position = atom.position + axis * lobeOffset * side;
+                    m_transform.scale = lobeScale;
+
+                    m_shader->setMat4("u_model", m_transform.matrix());
+                    m_shader->setVec3("u_color", orbital.color);
+                    m_shader->setFloat("u_alpha", 0.45f);
+                    m_mesh->draw();
+                }
             }
-
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 

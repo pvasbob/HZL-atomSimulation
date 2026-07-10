@@ -47,8 +47,8 @@ namespace hzl
 
         Atom oxygen16;
         oxygen16.position = {0.0f, 0.0f, 0.0f};
-        oxygen16.nucleusRadius = 0.22f;
-        oxygen16.nucleusColor = {0.90f, 0.18f, 0.14f};
+        oxygen16.nucleusRadius = 0.12f;
+        oxygen16.nucleusColor = {0.02f, 0.02f, 0.025f};
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
 
