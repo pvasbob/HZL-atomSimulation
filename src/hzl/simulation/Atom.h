@@ -11,6 +11,10 @@ namespace hzl
         glm::vec3 relativePosition = {0.0f, 0.0f, 0.0f};
         float radius = 0.08f;
         glm::vec3 color = {0.20f, 0.55f, 1.0f};
+        float orbitRadius = 1.0f;
+        float orbitAngle = 0.0f;
+        float orbitSpeed = 1.0f;
+        float orbitTilt = 0.0f;
     };
 
     struct Atom

@@ -1,8 +1,7 @@
 #include "hzl/core/Application.h"
 
-#include <glm/geometric.hpp>
-
 #include <chrono>
+#include <cmath>
 #include <iostream>
 
 namespace hzl
@@ -57,23 +56,30 @@ namespace hzl
         constexpr float electronOrbitRadius = 0.95f;
         constexpr float electronRadius = 0.075f;
         const glm::vec3 electronColor = {0.25f, 0.60f, 1.0f};
-        const glm::vec3 electronDirections[] = {
-            {-1.0f, -1.0f, -1.0f},
-            { 1.0f, -1.0f, -1.0f},
-            {-1.0f,  1.0f, -1.0f},
-            { 1.0f,  1.0f, -1.0f},
-            {-1.0f, -1.0f,  1.0f},
-            { 1.0f, -1.0f,  1.0f},
-            {-1.0f,  1.0f,  1.0f},
-            { 1.0f,  1.0f,  1.0f},
+        const float electronAngles[] = {
+            0.0f,
+            0.7853982f,
+            1.5707963f,
+            2.3561945f,
+            3.1415927f,
+            3.9269908f,
+            4.7123890f,
+            5.4977871f,
         };
 
-        for (const glm::vec3& direction : electronDirections)
+        for (int index = 0; index < 8; ++index)
         {
             Electron electron;
-            electron.relativePosition = glm::normalize(direction) * electronOrbitRadius;
             electron.radius = electronRadius;
             electron.color = electronColor;
+            electron.orbitRadius = electronOrbitRadius;
+            electron.orbitAngle = electronAngles[index];
+            electron.orbitSpeed = 0.8f + static_cast<float>(index % 4) * 0.25f;
+            electron.orbitTilt = static_cast<float>(index) * 0.45f;
+            electron.relativePosition = {
+                std::cos(electron.orbitAngle) * electron.orbitRadius,
+                std::sin(electron.orbitAngle + electron.orbitTilt) * electron.orbitRadius * 0.35f,
+                std::sin(electron.orbitAngle) * electron.orbitRadius};
             oxygen16.electrons.push_back(electron);
         }
 
@@ -93,6 +99,7 @@ namespace hzl
 
     void Application::update(Timestep timestep)
     {
+        m_atomWorld.update(timestep);
         m_renderer.update(timestep);
 
         if (m_frameIndex == 0)
