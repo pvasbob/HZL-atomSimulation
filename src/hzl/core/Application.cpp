@@ -6,9 +6,12 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace hzl
 {
@@ -46,6 +49,75 @@ namespace hzl
             }
 
             return nullptr;
+        }
+
+        const char* orbitalTypeLabel(OrbitalType type)
+        {
+            switch (type)
+            {
+                case OrbitalType::S:
+                    return "s";
+                case OrbitalType::P:
+                    return "p";
+                case OrbitalType::D:
+                    return "d";
+                case OrbitalType::F:
+                    return "f";
+            }
+
+            return "?";
+        }
+
+        int orbitalGroupKey(int principalQuantumNumber, OrbitalType type)
+        {
+            return principalQuantumNumber * 10 + static_cast<int>(type);
+        }
+
+        struct OrbitalGroup
+        {
+            int key;
+            int principalQuantumNumber;
+            OrbitalType type;
+            int electronCount;
+        };
+
+        std::vector<OrbitalGroup> orbitalGroups(const Atom& atom)
+        {
+            std::vector<OrbitalGroup> groups;
+
+            for (const Orbital& orbital : atom.orbitals)
+            {
+                const int key = orbitalGroupKey(orbital.principalQuantumNumber, orbital.type);
+                auto existing = std::find_if(
+                    groups.begin(),
+                    groups.end(),
+                    [key](const OrbitalGroup& group)
+                    {
+                        return group.key == key;
+                    });
+
+                if (existing != groups.end())
+                {
+                    existing->electronCount += orbital.electronCount;
+                    continue;
+                }
+
+                groups.push_back({
+                    key,
+                    orbital.principalQuantumNumber,
+                    orbital.type,
+                    orbital.electronCount});
+            }
+
+            return groups;
+        }
+
+        std::string orbitalGroupLabel(const OrbitalGroup& group)
+        {
+            std::string label = std::to_string(group.principalQuantumNumber);
+            label += orbitalTypeLabel(group.type);
+            label += std::to_string(group.electronCount);
+            return label;
         }
     }
 
@@ -228,6 +300,11 @@ namespace hzl
 
         ImGui::End();
 
+        if (currentAtom != nullptr)
+        {
+            renderOrbitalPanel(*currentAtom);
+        }
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
@@ -235,7 +312,80 @@ namespace hzl
     void Application::selectElement(int atomicNumber)
     {
         m_selectedAtomicNumber = atomicNumber;
+        m_selectedOrbitalGroupKey = -1;
+        m_renderer.setUiHighlightedOrbitalGroup(-1, OrbitalType::S);
         m_atomWorld.setAtom(AtomFactory::createElement(atomicNumber));
+    }
+
+    void Application::renderOrbitalPanel(const Atom& atom)
+    {
+        ImGui::SetNextWindowPos({10.0f, 96.0f}, ImGuiCond_Always);
+        ImGui::SetNextWindowSize({180.0f, 360.0f}, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowBgAlpha(0.72f);
+        ImGui::Begin(
+            "Orbitals",
+            nullptr,
+            ImGuiWindowFlags_NoMove
+                | ImGuiWindowFlags_NoCollapse);
+
+        if (m_selectedOrbitalGroupKey >= 0)
+        {
+            if (ImGui::Button("Clear Selection"))
+            {
+                m_selectedOrbitalGroupKey = -1;
+            }
+        }
+
+        ImGui::Separator();
+
+        const std::vector<OrbitalGroup> groups = orbitalGroups(atom);
+        int highlightedGroupKey = m_selectedOrbitalGroupKey;
+        int highlightedPrincipalQuantumNumber = -1;
+        OrbitalType highlightedOrbitalType = OrbitalType::S;
+
+        for (const OrbitalGroup& group : groups)
+        {
+            const std::string label = orbitalGroupLabel(group);
+            const bool isSelected = group.key == m_selectedOrbitalGroupKey;
+
+            ImGui::PushID(group.key);
+            if (ImGui::Selectable(label.c_str(), isSelected))
+            {
+                m_selectedOrbitalGroupKey = isSelected ? -1 : group.key;
+            }
+
+            if (ImGui::IsItemHovered())
+            {
+                highlightedGroupKey = group.key;
+                highlightedPrincipalQuantumNumber = group.principalQuantumNumber;
+                highlightedOrbitalType = group.type;
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::End();
+
+        if (m_selectedOrbitalGroupKey >= 0)
+        {
+            for (const OrbitalGroup& group : groups)
+            {
+                if (group.key == m_selectedOrbitalGroupKey)
+                {
+                    highlightedPrincipalQuantumNumber = group.principalQuantumNumber;
+                    highlightedOrbitalType = group.type;
+                    break;
+                }
+            }
+        }
+
+        if (highlightedGroupKey < 0)
+        {
+            m_renderer.setUiHighlightedOrbitalGroup(-1, OrbitalType::S);
+            return;
+        }
+
+        m_renderer.setUiHighlightedOrbitalGroup(highlightedPrincipalQuantumNumber, highlightedOrbitalType);
     }
 
     bool Application::shouldClose() const

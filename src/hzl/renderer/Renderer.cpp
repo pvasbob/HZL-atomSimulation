@@ -4,6 +4,8 @@
 
 #include <glad/gl.h>
 #include <glm/geometric.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
@@ -116,6 +118,14 @@ namespace hzl
     void Renderer::update(Timestep timestep, Window& window, bool enableInput)
     {
         (void)timestep;
+        m_sceneHoverEnabled = enableInput;
+        m_viewportWidth = window.properties().width;
+        m_viewportHeight = window.properties().height;
+
+        const auto [cursorX, cursorY] = window.cursorPosition();
+        m_cursorX = cursorX;
+        m_cursorY = cursorY;
+
         if (enableInput)
         {
             updateOrbitCamera(window);
@@ -149,24 +159,28 @@ namespace hzl
 
     void Renderer::renderOrbitalMeshes(const Atom& atom)
     {
+        m_hoveredOrbitalIndex = -1;
+
         glDepthMask(GL_FALSE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        for (const Orbital& orbital : atom.orbitals)
+        for (int orbitalIndex = 0; orbitalIndex < static_cast<int>(atom.orbitals.size()); ++orbitalIndex)
         {
+            const Orbital& orbital = atom.orbitals[static_cast<std::size_t>(orbitalIndex)];
+
             switch (orbital.type)
             {
                 case OrbitalType::S:
-                    renderSOrbital(atom, orbital);
+                    renderSOrbital(atom, orbital, orbitalIndex);
                     break;
                 case OrbitalType::P:
-                    renderPOrbital(atom, orbital);
+                    renderPOrbital(atom, orbital, orbitalIndex);
                     break;
                 case OrbitalType::D:
-                    renderDOrbital(atom, orbital);
+                    renderDOrbital(atom, orbital, orbitalIndex);
                     break;
                 case OrbitalType::F:
-                    renderFOrbital(atom, orbital);
+                    renderFOrbital(atom, orbital, orbitalIndex);
                     break;
             }
         }
@@ -190,7 +204,7 @@ namespace hzl
         m_mesh->draw();
     }
 
-    void Renderer::renderSOrbital(const Atom& atom, const Orbital& orbital)
+    void Renderer::renderSOrbital(const Atom& atom, const Orbital& orbital, int orbitalIndex)
     {
         m_transform.position = atom.position;
         m_transform.rotation = {0.0f, 0.0f, 0.0f};
@@ -200,12 +214,12 @@ namespace hzl
             orbital.visualRadius};
 
         m_shader->setMat4("u_model", m_transform.matrix());
-        m_shader->setVec3("u_color", orbital.color);
-        m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
+        m_shader->setVec3("u_color", adjustedOrbitalColor(orbital, orbitalIndex));
+        m_shader->setFloat("u_alpha", adjustedOrbitalAlpha(orbital, orbitalIndex));
         m_mesh->draw();
     }
 
-    void Renderer::renderPOrbital(const Atom& atom, const Orbital& orbital)
+    void Renderer::renderPOrbital(const Atom& atom, const Orbital& orbital, int orbitalIndex)
     {
         const float lobeOffset = orbital.visualRadius * 0.48f;
         const float lobeLength = orbital.visualRadius * 0.34f;
@@ -235,11 +249,11 @@ namespace hzl
             }
 
             m_transform.position = atom.position + offset;
-            drawScaledOrbitalLobe(m_transform.position, scale, orbital);
+            drawScaledOrbitalLobe(m_transform.position, scale, orbital, orbitalIndex);
         }
     }
 
-    void Renderer::renderDOrbital(const Atom& atom, const Orbital& orbital)
+    void Renderer::renderDOrbital(const Atom& atom, const Orbital& orbital, int orbitalIndex)
     {
         const float offset = orbital.visualRadius * 0.38f;
         const float length = orbital.visualRadius * 0.24f;
@@ -277,11 +291,11 @@ namespace hzl
                     break;
             }
 
-            drawScaledOrbitalLobe(lobePosition, scale, orbital);
+            drawScaledOrbitalLobe(lobePosition, scale, orbital, orbitalIndex);
         }
     }
 
-    void Renderer::renderFOrbital(const Atom& atom, const Orbital& orbital)
+    void Renderer::renderFOrbital(const Atom& atom, const Orbital& orbital, int orbitalIndex)
     {
         const float offset = orbital.visualRadius * 0.42f;
         const float length = orbital.visualRadius * 0.20f;
@@ -306,19 +320,19 @@ namespace hzl
                 direction.y == 0.0f ? thickness : length,
                 direction.z == 0.0f ? thickness : length};
 
-            drawScaledOrbitalLobe(lobePosition, scale, orbital);
+            drawScaledOrbitalLobe(lobePosition, scale, orbital, orbitalIndex);
         }
     }
 
-    void Renderer::drawScaledOrbitalLobe(const glm::vec3& position, const glm::vec3& scale, const Orbital& orbital)
+    void Renderer::drawScaledOrbitalLobe(const glm::vec3& position, const glm::vec3& scale, const Orbital& orbital, int orbitalIndex)
     {
         m_transform.position = position;
         m_transform.rotation = {0.0f, 0.0f, 0.0f};
         m_transform.scale = scale;
 
         m_shader->setMat4("u_model", m_transform.matrix());
-        m_shader->setVec3("u_color", orbital.color);
-        m_shader->setFloat("u_alpha", orbitalSurfaceAlpha(orbital));
+        m_shader->setVec3("u_color", adjustedOrbitalColor(orbital, orbitalIndex));
+        m_shader->setFloat("u_alpha", adjustedOrbitalAlpha(orbital, orbitalIndex));
         m_mesh->draw();
     }
 
@@ -335,6 +349,129 @@ namespace hzl
         }
 
         return 0.18f;
+    }
+
+    float Renderer::adjustedOrbitalAlpha(const Orbital& orbital, int orbitalIndex) const
+    {
+        const float baseAlpha = orbitalSurfaceAlpha(orbital);
+        if (m_uiHighlightedPrincipalQuantumNumber < 0)
+        {
+            return baseAlpha;
+        }
+
+        if (orbital.principalQuantumNumber == m_uiHighlightedPrincipalQuantumNumber
+            && orbital.type == m_uiHighlightedOrbitalType)
+        {
+            return std::min(baseAlpha * 2.0f, 0.92f);
+        }
+
+        return baseAlpha * 0.18f;
+    }
+
+    glm::vec3 Renderer::adjustedOrbitalColor(const Orbital& orbital, int orbitalIndex) const
+    {
+        if (m_uiHighlightedPrincipalQuantumNumber < 0)
+        {
+            return orbital.color;
+        }
+
+        if (orbital.principalQuantumNumber == m_uiHighlightedPrincipalQuantumNumber
+            && orbital.type == m_uiHighlightedOrbitalType)
+        {
+            return {
+                std::min(orbital.color.r * 1.55f, 1.0f),
+                std::min(orbital.color.g * 1.55f, 1.0f),
+                std::min(orbital.color.b * 1.55f, 1.0f)};
+        }
+
+        return orbital.color * 0.35f;
+    }
+
+    int Renderer::hoveredOrbitalIndex(const Atom& atom) const
+    {
+        if (!m_sceneHoverEnabled || m_viewportWidth <= 0 || m_viewportHeight <= 0)
+        {
+            return -1;
+        }
+
+        glm::vec2 centerScreen;
+        if (!projectToScreen(atom.position, centerScreen))
+        {
+            return -1;
+        }
+
+        const glm::vec2 mousePosition{
+            static_cast<float>(m_cursorX),
+            static_cast<float>(m_cursorY)};
+
+        int bestOrbitalIndex = -1;
+        float bestDistanceToShell = 100000.0f;
+
+        for (int orbitalIndex = 0; orbitalIndex < static_cast<int>(atom.orbitals.size()); ++orbitalIndex)
+        {
+            const Orbital& orbital = atom.orbitals[static_cast<std::size_t>(orbitalIndex)];
+
+            glm::vec2 radiusScreens[3];
+            const bool canProjectX = projectToScreen(atom.position + glm::vec3{orbital.visualRadius, 0.0f, 0.0f}, radiusScreens[0]);
+            const bool canProjectY = projectToScreen(atom.position + glm::vec3{0.0f, orbital.visualRadius, 0.0f}, radiusScreens[1]);
+            const bool canProjectZ = projectToScreen(atom.position + glm::vec3{0.0f, 0.0f, orbital.visualRadius}, radiusScreens[2]);
+
+            float screenRadius = 0.0f;
+            if (canProjectX)
+            {
+                screenRadius = std::max(screenRadius, glm::length(radiusScreens[0] - centerScreen));
+            }
+            if (canProjectY)
+            {
+                screenRadius = std::max(screenRadius, glm::length(radiusScreens[1] - centerScreen));
+            }
+            if (canProjectZ)
+            {
+                screenRadius = std::max(screenRadius, glm::length(radiusScreens[2] - centerScreen));
+            }
+
+            if (screenRadius <= 1.0f)
+            {
+                continue;
+            }
+
+            const float mouseDistanceFromCenter = glm::length(mousePosition - centerScreen);
+            const float distanceToShell = std::abs(mouseDistanceFromCenter - screenRadius);
+            constexpr float hoverThresholdPixels = 22.0f;
+
+            if (distanceToShell < hoverThresholdPixels && distanceToShell < bestDistanceToShell)
+            {
+                bestDistanceToShell = distanceToShell;
+                bestOrbitalIndex = orbitalIndex;
+            }
+        }
+
+        return bestOrbitalIndex;
+    }
+
+    bool Renderer::projectToScreen(const glm::vec3& worldPosition, glm::vec2& screenPosition) const
+    {
+        const glm::vec4 clipPosition = m_camera.viewProjection() * glm::vec4{worldPosition, 1.0f};
+        if (clipPosition.w <= 0.0f)
+        {
+            return false;
+        }
+
+        const glm::vec3 ndc{
+            clipPosition.x / clipPosition.w,
+            clipPosition.y / clipPosition.w,
+            clipPosition.z / clipPosition.w};
+
+        if (ndc.z < -1.0f || ndc.z > 1.0f)
+        {
+            return false;
+        }
+
+        screenPosition = {
+            (ndc.x * 0.5f + 0.5f) * static_cast<float>(m_viewportWidth),
+            (0.5f - ndc.y * 0.5f) * static_cast<float>(m_viewportHeight)};
+
+        return true;
     }
 
     void Renderer::updateOrbitCamera(Window& window)
@@ -386,6 +523,13 @@ namespace hzl
 
     void Renderer::endFrame()
     {
+    }
+
+    void Renderer::setUiHighlightedOrbitalGroup(int principalQuantumNumber, OrbitalType orbitalType)
+    {
+        m_uiHighlightedPrincipalQuantumNumber = principalQuantumNumber;
+        m_uiHighlightedOrbitalType = orbitalType;
+        m_hoveredOrbitalIndex = principalQuantumNumber >= 0 ? 0 : -1;
     }
 
     void Renderer::initializeElectronCloudRenderer()

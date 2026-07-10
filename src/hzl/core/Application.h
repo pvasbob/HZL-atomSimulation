@@ -24,6 +24,7 @@ namespace hzl
         void shutdownUi();
         void renderUi();
         void selectElement(int atomicNumber);
+        void renderOrbitalPanel(const Atom& atom);
 
         bool shouldClose() const;
 
@@ -34,6 +35,7 @@ namespace hzl
         bool m_running = true;
         bool m_uiInitialized = false;
         int m_selectedAtomicNumber = 83;
+        int m_selectedOrbitalGroupKey = -1;
         int m_frameIndex = 0;
     };
 }
