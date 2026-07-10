@@ -22,7 +22,7 @@ namespace hzl
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
 
-        void update(Timestep timestep, Window& window);
+        void update(Timestep timestep, Window& window, bool enableInput);
         void beginFrame();
         void renderAtoms(const std::vector<Atom>& atoms);
         void endFrame();

@@ -9,6 +9,7 @@ namespace hzl
     public:
         static Atom createOxygen16();
         static Atom createBismuth209();
+        static Atom createElement(int atomicNumber);
 
     private:
         static void addElectronSamples(Atom& atom);

@@ -105,6 +105,11 @@ namespace hzl
         return scrollDeltaY;
     }
 
+    GLFWwindow* Window::nativeHandle() const
+    {
+        return m_handle;
+    }
+
     void Window::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
     {
         (void)xOffset;

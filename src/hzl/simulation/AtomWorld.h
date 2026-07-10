@@ -39,6 +39,25 @@ namespace hzl
 
         void addAtom(Atom atom)
         {
+            initializeElectronSamples(atom);
+            m_atoms.push_back(atom);
+        }
+
+        void setAtom(Atom atom)
+        {
+            initializeElectronSamples(atom);
+            m_atoms.clear();
+            m_atoms.push_back(atom);
+        }
+
+        const std::vector<Atom>& atoms() const
+        {
+            return m_atoms;
+        }
+
+    private:
+        void initializeElectronSamples(Atom& atom)
+        {
             for (ElectronSample& sample : atom.electronSamples)
             {
                 if (sample.orbitalIndex < 0
@@ -49,16 +68,8 @@ namespace hzl
 
                 sample.position = sampleOrbital(atom.orbitals[static_cast<std::size_t>(sample.orbitalIndex)]);
             }
-
-            m_atoms.push_back(atom);
         }
 
-        const std::vector<Atom>& atoms() const
-        {
-            return m_atoms;
-        }
-
-    private:
         glm::vec3 sampleOrbital(const Orbital& orbital)
         {
             if (orbital.type == OrbitalType::P)

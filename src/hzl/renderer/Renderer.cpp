@@ -112,10 +112,18 @@ namespace hzl
         glDeleteVertexArrays(1, &m_pointVertexArray);
     }
 
-    void Renderer::update(Timestep timestep, Window& window)
+    void Renderer::update(Timestep timestep, Window& window, bool enableInput)
     {
         (void)timestep;
-        updateOrbitCamera(window);
+        if (enableInput)
+        {
+            updateOrbitCamera(window);
+        }
+        else
+        {
+            m_isOrbiting = false;
+            (void)window.consumeScrollDeltaY();
+        }
     }
 
     void Renderer::beginFrame()

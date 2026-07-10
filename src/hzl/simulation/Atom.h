@@ -2,6 +2,7 @@
 
 #include <glm/vec3.hpp>
 
+#include <string>
 #include <vector>
 
 namespace hzl
@@ -53,6 +54,8 @@ namespace hzl
         glm::vec3 nucleusColor = {0.90f, 0.20f, 0.18f};
         int atomicNumber = 0;
         int massNumber = 0;
+        std::string symbol;
+        std::string name;
         std::vector<Orbital> orbitals;
         std::vector<ElectronSample> electronSamples;
     };

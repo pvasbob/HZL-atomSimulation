@@ -20,6 +20,10 @@ namespace hzl
         void runFrame(Timestep timestep);
         void update(Timestep timestep);
         void render();
+        void initializeUi();
+        void shutdownUi();
+        void renderUi();
+        void selectElement(int atomicNumber);
 
         bool shouldClose() const;
 
@@ -28,6 +32,8 @@ namespace hzl
         Renderer m_renderer;
         AtomWorld m_atomWorld;
         bool m_running = true;
+        bool m_uiInitialized = false;
+        int m_selectedAtomicNumber = 83;
         int m_frameIndex = 0;
     };
 }

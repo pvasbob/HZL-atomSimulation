@@ -30,6 +30,7 @@ namespace hzl
         bool isLeftMouseButtonPressed() const;
         std::pair<double, double> cursorPosition() const;
         double consumeScrollDeltaY();
+        GLFWwindow* nativeHandle() const;
 
     private:
         static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
