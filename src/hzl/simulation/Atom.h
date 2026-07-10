@@ -33,8 +33,8 @@ namespace hzl
     struct ElectronSample
     {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
-        float radius = 0.025f;
         glm::vec3 color = {0.85f, 0.95f, 1.0f};
+        float alpha = 0.35f;
         int orbitalIndex = 0;
     };
 

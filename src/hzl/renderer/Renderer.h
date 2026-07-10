@@ -27,9 +27,18 @@ namespace hzl
         void endFrame();
 
     private:
+        void initializeElectronCloudRenderer();
+        void uploadElectronCloud(const std::vector<Atom>& atoms);
+        void drawElectronCloud();
+
+    private:
         std::unique_ptr<Mesh> m_mesh;
         std::unique_ptr<Shader> m_shader;
+        std::unique_ptr<Shader> m_pointShader;
         Camera m_camera;
         Transform m_transform;
+        unsigned int m_pointVertexArray = 0;
+        unsigned int m_pointVertexBuffer = 0;
+        int m_pointCount = 0;
     };
 }

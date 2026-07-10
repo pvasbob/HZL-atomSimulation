@@ -3,12 +3,12 @@
 #include "hzl/renderer/MeshFactory.h"
 
 #include <glad/gl.h>
-#include <glm/ext/scalar_constants.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 namespace hzl
 {
@@ -43,59 +43,70 @@ namespace hzl
             }
         )";
 
-        glm::vec3 orbitalAxisDirection(OrbitalAxis axis)
-        {
-            switch (axis)
+        constexpr const char* pointVertexShaderSource = R"(
+            #version 330 core
+
+            layout (location = 0) in vec3 a_position;
+            layout (location = 1) in vec3 a_color;
+            layout (location = 2) in float a_alpha;
+
+            out vec4 v_color;
+
+            uniform mat4 u_model;
+            uniform mat4 u_viewProjection;
+            uniform float u_pointSize;
+
+            void main()
             {
-                case OrbitalAxis::X:
-                    return {1.0f, 0.0f, 0.0f};
-                case OrbitalAxis::Y:
-                    return {0.0f, 1.0f, 0.0f};
-                case OrbitalAxis::Z:
-                    return {0.0f, 0.0f, 1.0f};
-                case OrbitalAxis::None:
-                    return {0.0f, 0.0f, 0.0f};
+                v_color = vec4(a_color, a_alpha);
+                gl_Position = u_viewProjection * u_model * vec4(a_position, 1.0);
+                gl_PointSize = u_pointSize;
             }
+        )";
 
-            return {0.0f, 0.0f, 0.0f};
-        }
+        constexpr const char* pointFragmentShaderSource = R"(
+            #version 330 core
 
-        glm::vec3 pOrbitalLobeScale(OrbitalAxis axis, float radius)
-        {
-            const float length = radius * 0.42f;
-            const float thickness = radius * 0.18f;
+            in vec4 v_color;
+            out vec4 frag_color;
 
-            switch (axis)
+            void main()
             {
-                case OrbitalAxis::X:
-                    return {length, thickness, thickness};
-                case OrbitalAxis::Y:
-                    return {thickness, length, thickness};
-                case OrbitalAxis::Z:
-                    return {thickness, thickness, length};
-                case OrbitalAxis::None:
-                    return {thickness, thickness, thickness};
-            }
+                vec2 centered = gl_PointCoord * 2.0 - 1.0;
+                float distanceFromCenter = dot(centered, centered);
 
-            return {thickness, thickness, thickness};
-        }
+                if (distanceFromCenter > 1.0)
+                {
+                    discard;
+                }
+
+                float softAlpha = v_color.a * (1.0 - smoothstep(0.15, 1.0, distanceFromCenter));
+                frag_color = vec4(v_color.rgb, softAlpha);
+            }
+        )";
+
     }
 
     Renderer::Renderer()
         : m_shader(std::make_unique<Shader>(vertexShaderSource, fragmentShaderSource)),
+          m_pointShader(std::make_unique<Shader>(pointVertexShaderSource, pointFragmentShaderSource)),
           m_camera(1280.0f / 720.0f, glm::radians(45.0f), 0.1f, 100.0f)
     {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
+        glEnable(GL_PROGRAM_POINT_SIZE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         m_mesh = MeshFactory::createSphere(1.0f, 24, 32);
+        initializeElectronCloudRenderer();
 
         std::cout << "Renderer initialized.\n";
     }
 
     Renderer::~Renderer()
     {
+        glDeleteBuffers(1, &m_pointVertexBuffer);
+        glDeleteVertexArrays(1, &m_pointVertexArray);
     }
 
     void Renderer::update(Timestep timestep)
@@ -128,65 +139,96 @@ namespace hzl
             m_shader->setVec3("u_color", atom.nucleusColor);
             m_shader->setFloat("u_alpha", 1.0f);
             m_mesh->draw();
-
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-            for (const Orbital& orbital : atom.orbitals)
-            {
-                if (orbital.type == OrbitalType::S)
-                {
-                    m_transform.position = atom.position;
-                    m_transform.scale = {
-                        orbital.visualRadius,
-                        orbital.visualRadius,
-                        orbital.visualRadius};
-
-                    m_shader->setMat4("u_model", m_transform.matrix());
-                    m_shader->setVec3("u_color", orbital.color);
-                    m_shader->setFloat("u_alpha", 0.35f);
-                    m_mesh->draw();
-                }
-            }
-
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-            for (const Orbital& orbital : atom.orbitals)
-            {
-                if (orbital.type != OrbitalType::P)
-                {
-                    continue;
-                }
-
-                const glm::vec3 axis = orbitalAxisDirection(orbital.axis);
-                const glm::vec3 lobeScale = pOrbitalLobeScale(orbital.axis, orbital.visualRadius);
-                const float lobeOffset = orbital.visualRadius * 0.36f;
-
-                for (float side : {-1.0f, 1.0f})
-                {
-                    m_transform.position = atom.position + axis * lobeOffset * side;
-                    m_transform.scale = lobeScale;
-
-                    m_shader->setMat4("u_model", m_transform.matrix());
-                    m_shader->setVec3("u_color", orbital.color);
-                    m_shader->setFloat("u_alpha", 0.45f);
-                    m_mesh->draw();
-                }
-            }
-
-            for (const ElectronSample& sample : atom.electronSamples)
-            {
-                m_transform.position = atom.position + sample.position;
-                m_transform.scale = {sample.radius, sample.radius, sample.radius};
-
-                m_shader->setMat4("u_model", m_transform.matrix());
-                m_shader->setVec3("u_color", sample.color);
-                m_shader->setFloat("u_alpha", 1.0f);
-                m_mesh->draw();
-            }
         }
+
+        uploadElectronCloud(atoms);
+        drawElectronCloud();
     }
 
     void Renderer::endFrame()
     {
+    }
+
+    void Renderer::initializeElectronCloudRenderer()
+    {
+        glGenVertexArrays(1, &m_pointVertexArray);
+        glGenBuffers(1, &m_pointVertexBuffer);
+
+        glBindVertexArray(m_pointVertexArray);
+        glBindBuffer(GL_ARRAY_BUFFER, m_pointVertexBuffer);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), nullptr);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(
+            1,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            7 * sizeof(float),
+            reinterpret_cast<const void*>(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(
+            2,
+            1,
+            GL_FLOAT,
+            GL_FALSE,
+            7 * sizeof(float),
+            reinterpret_cast<const void*>(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
+    void Renderer::uploadElectronCloud(const std::vector<Atom>& atoms)
+    {
+        std::vector<float> points;
+
+        for (const Atom& atom : atoms)
+        {
+            for (const ElectronSample& sample : atom.electronSamples)
+            {
+                const glm::vec3 position = atom.position + sample.position;
+
+                points.push_back(position.x);
+                points.push_back(position.y);
+                points.push_back(position.z);
+                points.push_back(sample.color.r);
+                points.push_back(sample.color.g);
+                points.push_back(sample.color.b);
+                points.push_back(sample.alpha);
+            }
+        }
+
+        m_pointCount = static_cast<int>(points.size() / 7);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_pointVertexBuffer);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            static_cast<GLsizeiptr>(points.size() * sizeof(float)),
+            points.data(),
+            GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    void Renderer::drawElectronCloud()
+    {
+        if (m_pointCount == 0)
+        {
+            return;
+        }
+
+        m_pointShader->bind();
+        m_pointShader->setMat4("u_model", glm::mat4(1.0f));
+        m_pointShader->setMat4("u_viewProjection", m_camera.viewProjection());
+        m_pointShader->setFloat("u_pointSize", 1.7f);
+
+        glDepthMask(GL_FALSE);
+        glBindVertexArray(m_pointVertexArray);
+        glDrawArrays(GL_POINTS, 0, m_pointCount);
+        glBindVertexArray(0);
+        glDepthMask(GL_TRUE);
     }
 }

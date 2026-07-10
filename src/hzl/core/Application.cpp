@@ -53,21 +53,27 @@ namespace hzl
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
 
-        oxygen16.orbitals.push_back({1, OrbitalType::S, OrbitalAxis::None, 2, 0.35f, {0.25f, 0.55f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::S, OrbitalAxis::None, 2, 0.62f, {0.20f, 0.75f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 0.82f, {0.65f, 0.45f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({1, OrbitalType::S, OrbitalAxis::None, 2, 0.28f, {1.00f, 0.12f, 0.08f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::S, OrbitalAxis::None, 2, 0.54f, {1.00f, 0.95f, 0.08f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 0.78f, {0.12f, 1.00f, 0.22f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 0.78f, {0.12f, 1.00f, 0.22f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 0.78f, {0.12f, 1.00f, 0.22f}});
 
         for (int orbitalIndex = 0; orbitalIndex < static_cast<int>(oxygen16.orbitals.size()); ++orbitalIndex)
         {
             const Orbital& orbital = oxygen16.orbitals[static_cast<std::size_t>(orbitalIndex)];
 
-            for (int electron = 0; electron < orbital.electronCount; ++electron)
+            const bool isSOrbital = orbital.type == OrbitalType::S;
+            const int samplesPerElectron = isSOrbital ? 1500 : 650;
+            const float sampleAlpha = isSOrbital
+                ? (orbital.principalQuantumNumber == 1 ? 0.55f : 0.34f)
+                : 0.30f;
+
+            for (int sampleIndex = 0; sampleIndex < orbital.electronCount * samplesPerElectron; ++sampleIndex)
             {
                 ElectronSample sample;
-                sample.radius = 0.025f;
-                sample.color = {0.86f, 0.95f, 1.0f};
+                sample.color = orbital.color;
+                sample.alpha = sampleAlpha;
                 sample.orbitalIndex = orbitalIndex;
                 oxygen16.electronSamples.push_back(sample);
             }

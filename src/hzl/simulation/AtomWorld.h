@@ -37,8 +37,19 @@ namespace hzl
             }
         }
 
-        void addAtom(const Atom& atom)
+        void addAtom(Atom atom)
         {
+            for (ElectronSample& sample : atom.electronSamples)
+            {
+                if (sample.orbitalIndex < 0
+                    || sample.orbitalIndex >= static_cast<int>(atom.orbitals.size()))
+                {
+                    continue;
+                }
+
+                sample.position = sampleOrbital(atom.orbitals[static_cast<std::size_t>(sample.orbitalIndex)]);
+            }
+
             m_atoms.push_back(atom);
         }
 
@@ -55,14 +66,14 @@ namespace hzl
                 return samplePOrbital(orbital);
             }
 
-            return sampleSOrbital(orbital.visualRadius);
+            return sampleSOrbital(orbital);
         }
 
-        glm::vec3 sampleSOrbital(float radius)
+        glm::vec3 sampleSOrbital(const Orbital& orbital)
         {
             const float theta = random01() * 2.0f * pi;
             const float z = randomRange(-1.0f, 1.0f);
-            const float radialScale = radius * std::cbrt(random01());
+            const float radialScale = orbital.visualRadius * randomSRadius(orbital.principalQuantumNumber);
             const float xy = std::sqrt(1.0f - z * z);
 
             return {
@@ -75,11 +86,14 @@ namespace hzl
         {
             const glm::vec3 axis = orbitalAxisDirection(orbital.axis);
             const float side = random01() < 0.5f ? -1.0f : 1.0f;
-            const float alongAxis = side * randomRange(0.22f, 0.48f) * orbital.visualRadius;
-            const float spread = orbital.visualRadius * 0.13f;
+            const float lobeCenter = randomRange(0.52f, 0.88f) * orbital.visualRadius;
+            const float alongAxis = side * lobeCenter;
+            const float distanceFromLobeCenter = std::abs(lobeCenter - 0.70f * orbital.visualRadius);
+            const float lobeThickness = 0.24f * orbital.visualRadius - 0.45f * distanceFromLobeCenter;
+            const float spread = std::max(0.04f * orbital.visualRadius, lobeThickness);
 
             glm::vec3 point = axis * alongAxis;
-            point += perpendicularJitter(orbital.axis, spread);
+            point += perpendicularDiskJitter(orbital.axis, spread);
 
             return point;
         }
@@ -101,10 +115,12 @@ namespace hzl
             return {0.0f, 0.0f, 0.0f};
         }
 
-        glm::vec3 perpendicularJitter(OrbitalAxis axis, float spread)
+        glm::vec3 perpendicularDiskJitter(OrbitalAxis axis, float radius)
         {
-            const float a = randomRange(-spread, spread);
-            const float b = randomRange(-spread, spread);
+            const float angle = random01() * 2.0f * pi;
+            const float diskRadius = radius * std::sqrt(random01());
+            const float a = diskRadius * std::cos(angle);
+            const float b = diskRadius * std::sin(angle);
 
             switch (axis)
             {
@@ -115,7 +131,7 @@ namespace hzl
                 case OrbitalAxis::Z:
                     return {a, b, 0.0f};
                 case OrbitalAxis::None:
-                    return {a, b, randomRange(-spread, spread)};
+                    return {a, b, 0.0f};
             }
 
             return {0.0f, 0.0f, 0.0f};
@@ -131,9 +147,21 @@ namespace hzl
             return min + (max - min) * random01();
         }
 
+        float randomSRadius(int principalQuantumNumber)
+        {
+            if (principalQuantumNumber == 1)
+            {
+                return std::pow(random01(), 1.35f);
+            }
+
+            const float innerRegion = 0.25f;
+            const float outerRegion = 0.75f * std::pow(random01(), 0.65f);
+            return innerRegion + outerRegion;
+        }
+
     private:
         static constexpr float pi = 3.14159265358979323846f;
-        static constexpr float m_sampleIntervalSeconds = 0.035f;
+        static constexpr float m_sampleIntervalSeconds = 0.025f;
         float m_sampleTimer = 0.0f;
         std::mt19937 m_randomEngine{1337};
         std::uniform_real_distribution<float> m_distribution{0.0f, 1.0f};
