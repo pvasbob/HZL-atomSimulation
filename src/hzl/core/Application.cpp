@@ -1,5 +1,7 @@
 #include "hzl/core/Application.h"
 
+#include <glm/geometric.hpp>
+
 #include <chrono>
 #include <iostream>
 
@@ -45,12 +47,37 @@ namespace hzl
     {
         std::cout << "HZL Atom Simulation starting up...\n";
 
-        Atom atom;
-        atom.position = {0.0f, 0.0f, 0.0f};
-        atom.radius = 0.6f;
-        atom.color = {0.35f, 0.65f, 1.0f};
+        Atom oxygen16;
+        oxygen16.position = {0.0f, 0.0f, 0.0f};
+        oxygen16.nucleusRadius = 0.35f;
+        oxygen16.nucleusColor = {0.90f, 0.18f, 0.14f};
+        oxygen16.atomicNumber = 8;
+        oxygen16.massNumber = 16;
 
-        m_atomWorld.addAtom(atom);
+        constexpr float electronOrbitRadius = 0.95f;
+        constexpr float electronRadius = 0.075f;
+        const glm::vec3 electronColor = {0.25f, 0.60f, 1.0f};
+        const glm::vec3 electronDirections[] = {
+            {-1.0f, -1.0f, -1.0f},
+            { 1.0f, -1.0f, -1.0f},
+            {-1.0f,  1.0f, -1.0f},
+            { 1.0f,  1.0f, -1.0f},
+            {-1.0f, -1.0f,  1.0f},
+            { 1.0f, -1.0f,  1.0f},
+            {-1.0f,  1.0f,  1.0f},
+            { 1.0f,  1.0f,  1.0f},
+        };
+
+        for (const glm::vec3& direction : electronDirections)
+        {
+            Electron electron;
+            electron.relativePosition = glm::normalize(direction) * electronOrbitRadius;
+            electron.radius = electronRadius;
+            electron.color = electronColor;
+            oxygen16.electrons.push_back(electron);
+        }
+
+        m_atomWorld.addAtom(oxygen16);
     }
 
     void Application::shutdown()
