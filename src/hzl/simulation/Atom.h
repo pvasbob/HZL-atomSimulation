@@ -6,15 +6,28 @@
 
 namespace hzl
 {
-    struct Electron
+    enum class OrbitalType
     {
-        glm::vec3 relativePosition = {0.0f, 0.0f, 0.0f};
-        float radius = 0.08f;
-        glm::vec3 color = {0.20f, 0.55f, 1.0f};
-        float orbitRadius = 1.0f;
-        float orbitAngle = 0.0f;
-        float orbitSpeed = 1.0f;
-        float orbitTilt = 0.0f;
+        S,
+        P
+    };
+
+    enum class OrbitalAxis
+    {
+        None,
+        X,
+        Y,
+        Z
+    };
+
+    struct Orbital
+    {
+        int principalQuantumNumber = 1;
+        OrbitalType type = OrbitalType::S;
+        OrbitalAxis axis = OrbitalAxis::None;
+        int electronCount = 0;
+        float visualRadius = 1.0f;
+        glm::vec3 color = {0.25f, 0.60f, 1.0f};
     };
 
     struct Atom
@@ -24,6 +37,6 @@ namespace hzl
         glm::vec3 nucleusColor = {0.90f, 0.20f, 0.18f};
         int atomicNumber = 0;
         int massNumber = 0;
-        std::vector<Electron> electrons;
+        std::vector<Orbital> orbitals;
     };
 }

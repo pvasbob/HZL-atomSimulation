@@ -90,19 +90,6 @@ namespace hzl
             m_shader->setMat4("u_model", m_transform.matrix());
             m_shader->setVec3("u_color", atom.nucleusColor);
             m_mesh->draw();
-
-            for (const Electron& electron : atom.electrons)
-            {
-                m_transform.position = atom.position + electron.relativePosition;
-                m_transform.scale = {
-                    electron.radius,
-                    electron.radius,
-                    electron.radius};
-
-                m_shader->setMat4("u_model", m_transform.matrix());
-                m_shader->setVec3("u_color", electron.color);
-                m_mesh->draw();
-            }
         }
     }
 

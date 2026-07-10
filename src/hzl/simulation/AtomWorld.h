@@ -3,7 +3,6 @@
 #include "hzl/core/Timestep.h"
 #include "hzl/simulation/Atom.h"
 
-#include <cmath>
 #include <vector>
 
 namespace hzl
@@ -13,19 +12,7 @@ namespace hzl
     public:
         void update(Timestep timestep)
         {
-            for (Atom& atom : m_atoms)
-            {
-                for (Electron& electron : atom.electrons)
-                {
-                    electron.orbitAngle += electron.orbitSpeed * timestep.seconds();
-
-                    const float x = std::cos(electron.orbitAngle) * electron.orbitRadius;
-                    const float z = std::sin(electron.orbitAngle) * electron.orbitRadius;
-                    const float y = std::sin(electron.orbitAngle + electron.orbitTilt) * electron.orbitRadius * 0.35f;
-
-                    electron.relativePosition = {x, y, z};
-                }
-            }
+            (void)timestep;
         }
 
         void addAtom(const Atom& atom)

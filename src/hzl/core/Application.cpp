@@ -1,7 +1,6 @@
 #include "hzl/core/Application.h"
 
 #include <chrono>
-#include <cmath>
 #include <iostream>
 
 namespace hzl
@@ -53,35 +52,11 @@ namespace hzl
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
 
-        constexpr float electronOrbitRadius = 1.15f;
-        constexpr float electronRadius = 0.04f;
-        const glm::vec3 electronColor = {0.25f, 0.60f, 1.0f};
-        const float electronAngles[] = {
-            0.0f,
-            0.7853982f,
-            1.5707963f,
-            2.3561945f,
-            3.1415927f,
-            3.9269908f,
-            4.7123890f,
-            5.4977871f,
-        };
-
-        for (int index = 0; index < 8; ++index)
-        {
-            Electron electron;
-            electron.radius = electronRadius;
-            electron.color = electronColor;
-            electron.orbitRadius = electronOrbitRadius;
-            electron.orbitAngle = electronAngles[index];
-            electron.orbitSpeed = 0.8f + static_cast<float>(index % 4) * 0.25f;
-            electron.orbitTilt = static_cast<float>(index) * 0.45f;
-            electron.relativePosition = {
-                std::cos(electron.orbitAngle) * electron.orbitRadius,
-                std::sin(electron.orbitAngle + electron.orbitTilt) * electron.orbitRadius * 0.35f,
-                std::sin(electron.orbitAngle) * electron.orbitRadius};
-            oxygen16.electrons.push_back(electron);
-        }
+        oxygen16.orbitals.push_back({1, OrbitalType::S, OrbitalAxis::None, 2, 0.70f, {0.25f, 0.55f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::S, OrbitalAxis::None, 2, 1.15f, {0.20f, 0.75f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 1.55f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 1.55f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 1.55f, {0.65f, 0.45f, 1.0f}});
 
         m_atomWorld.addAtom(oxygen16);
     }
