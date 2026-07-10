@@ -75,6 +75,12 @@ namespace hzl
         glUseProgram(m_program);
     }
 
+    void Shader::setFloat(const char* name, float value) const
+    {
+        const int location = glGetUniformLocation(m_program, name);
+        glUniform1f(location, value);
+    }
+
     void Shader::setMat4(const char* name, const glm::mat4& value) const
     {
         const int location = glGetUniformLocation(m_program, name);

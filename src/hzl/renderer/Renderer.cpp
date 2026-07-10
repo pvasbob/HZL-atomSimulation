@@ -35,10 +35,11 @@ namespace hzl
             out vec4 frag_color;
 
             uniform vec3 u_color;
+            uniform float u_alpha;
 
             void main()
             {
-                frag_color = vec4(u_color, 1.0);
+                frag_color = vec4(u_color, u_alpha);
             }
         )";
     }
@@ -48,6 +49,8 @@ namespace hzl
           m_camera(1280.0f / 720.0f, glm::radians(45.0f), 0.1f, 100.0f)
     {
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         m_mesh = MeshFactory::createSphere(1.0f, 24, 32);
 
@@ -89,7 +92,31 @@ namespace hzl
 
             m_shader->setMat4("u_model", m_transform.matrix());
             m_shader->setVec3("u_color", atom.nucleusColor);
+            m_shader->setFloat("u_alpha", 1.0f);
             m_mesh->draw();
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+            for (const Orbital& orbital : atom.orbitals)
+            {
+                if (orbital.type != OrbitalType::S)
+                {
+                    continue;
+                }
+
+                m_transform.position = atom.position;
+                m_transform.scale = {
+                    orbital.visualRadius,
+                    orbital.visualRadius,
+                    orbital.visualRadius};
+
+                m_shader->setMat4("u_model", m_transform.matrix());
+                m_shader->setVec3("u_color", orbital.color);
+                m_shader->setFloat("u_alpha", 0.35f);
+                m_mesh->draw();
+            }
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 

@@ -47,16 +47,16 @@ namespace hzl
 
         Atom oxygen16;
         oxygen16.position = {0.0f, 0.0f, 0.0f};
-        oxygen16.nucleusRadius = 0.32f;
+        oxygen16.nucleusRadius = 0.22f;
         oxygen16.nucleusColor = {0.90f, 0.18f, 0.14f};
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
 
-        oxygen16.orbitals.push_back({1, OrbitalType::S, OrbitalAxis::None, 2, 0.70f, {0.25f, 0.55f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::S, OrbitalAxis::None, 2, 1.15f, {0.20f, 0.75f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 1.55f, {0.65f, 0.45f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 1.55f, {0.65f, 0.45f, 1.0f}});
-        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 1.55f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({1, OrbitalType::S, OrbitalAxis::None, 2, 0.35f, {0.25f, 0.55f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::S, OrbitalAxis::None, 2, 0.62f, {0.20f, 0.75f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 0.82f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
+        oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
 
         m_atomWorld.addAtom(oxygen16);
     }
