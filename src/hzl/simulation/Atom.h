@@ -30,6 +30,14 @@ namespace hzl
         glm::vec3 color = {0.25f, 0.60f, 1.0f};
     };
 
+    struct ElectronSample
+    {
+        glm::vec3 position = {0.0f, 0.0f, 0.0f};
+        float radius = 0.025f;
+        glm::vec3 color = {0.85f, 0.95f, 1.0f};
+        int orbitalIndex = 0;
+    };
+
     struct Atom
     {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
@@ -38,5 +46,6 @@ namespace hzl
         int atomicNumber = 0;
         int massNumber = 0;
         std::vector<Orbital> orbitals;
+        std::vector<ElectronSample> electronSamples;
     };
 }

@@ -100,10 +100,7 @@ namespace hzl
 
     void Renderer::update(Timestep timestep)
     {
-        constexpr float rotationSpeed = glm::pi<float>() * 0.5f;
-        m_transform.rotation.x += rotationSpeed * 0.65f * timestep.seconds();
-        m_transform.rotation.y += rotationSpeed * timestep.seconds();
-        m_transform.rotation.z += rotationSpeed * timestep.seconds();
+        (void)timestep;
     }
 
     void Renderer::beginFrame()
@@ -174,6 +171,17 @@ namespace hzl
                     m_shader->setFloat("u_alpha", 0.45f);
                     m_mesh->draw();
                 }
+            }
+
+            for (const ElectronSample& sample : atom.electronSamples)
+            {
+                m_transform.position = atom.position + sample.position;
+                m_transform.scale = {sample.radius, sample.radius, sample.radius};
+
+                m_shader->setMat4("u_model", m_transform.matrix());
+                m_shader->setVec3("u_color", sample.color);
+                m_shader->setFloat("u_alpha", 1.0f);
+                m_mesh->draw();
             }
         }
     }

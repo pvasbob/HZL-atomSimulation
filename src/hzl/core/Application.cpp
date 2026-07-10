@@ -1,6 +1,7 @@
 #include "hzl/core/Application.h"
 
 #include <chrono>
+#include <cstddef>
 #include <iostream>
 
 namespace hzl
@@ -57,6 +58,20 @@ namespace hzl
         oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::X, 2, 0.82f, {0.65f, 0.45f, 1.0f}});
         oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Y, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
         oxygen16.orbitals.push_back({2, OrbitalType::P, OrbitalAxis::Z, 1, 0.82f, {0.65f, 0.45f, 1.0f}});
+
+        for (int orbitalIndex = 0; orbitalIndex < static_cast<int>(oxygen16.orbitals.size()); ++orbitalIndex)
+        {
+            const Orbital& orbital = oxygen16.orbitals[static_cast<std::size_t>(orbitalIndex)];
+
+            for (int electron = 0; electron < orbital.electronCount; ++electron)
+            {
+                ElectronSample sample;
+                sample.radius = 0.025f;
+                sample.color = {0.86f, 0.95f, 1.0f};
+                sample.orbitalIndex = orbitalIndex;
+                oxygen16.electronSamples.push_back(sample);
+            }
+        }
 
         m_atomWorld.addAtom(oxygen16);
     }
