@@ -68,6 +68,8 @@ add_executable(HZLAtomSimulation
     src/hzl/renderer/VertexBuffer.h
     src/hzl/scene/Camera.h
     src/hzl/scene/Transform.h
+    src/hzl/simulation/AtomFactory.cpp
+    src/hzl/simulation/AtomFactory.h
     src/hzl/simulation/Atom.h
     src/hzl/simulation/AtomWorld.h
     src/main.cpp

@@ -20,6 +20,13 @@ namespace hzl
         Z
     };
 
+    enum class OrbitalVisualEmphasis
+    {
+        Core,
+        Supporting,
+        Active
+    };
+
     struct Orbital
     {
         int principalQuantumNumber = 1;
@@ -28,6 +35,7 @@ namespace hzl
         int electronCount = 0;
         float visualRadius = 1.0f;
         glm::vec3 color = {0.25f, 0.60f, 1.0f};
+        OrbitalVisualEmphasis visualEmphasis = OrbitalVisualEmphasis::Supporting;
     };
 
     struct ElectronSample
