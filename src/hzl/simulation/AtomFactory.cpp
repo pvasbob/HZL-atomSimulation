@@ -71,21 +71,34 @@ namespace hzl
             {7, OrbitalType::P, 6}
         }};
 
-        glm::vec3 colorForOrbitalType(OrbitalType type)
+        glm::vec3 rainbowColorForOrbitalOrder(int orbitalOrder)
         {
-            switch (type)
+            constexpr std::array<glm::vec3, 7> rainbowColors{{
+                {1.00f, 0.05f, 0.03f},
+                {1.00f, 0.48f, 0.03f},
+                {1.00f, 0.92f, 0.08f},
+                {0.10f, 1.00f, 0.22f},
+                {0.18f, 0.48f, 1.00f},
+                {0.32f, 0.18f, 0.90f},
+                {0.82f, 0.24f, 1.00f}
+            }};
+
+            return rainbowColors[static_cast<std::size_t>(orbitalOrder % static_cast<int>(rainbowColors.size()))];
+        }
+
+        int orbitalOrderForSubshell(const Subshell& subshell)
+        {
+            for (int index = 0; index < static_cast<int>(subshellFillOrder.size()); ++index)
             {
-                case OrbitalType::S:
-                    return {1.00f, 0.92f, 0.08f};
-                case OrbitalType::P:
-                    return {0.10f, 1.00f, 0.22f};
-                case OrbitalType::D:
-                    return {0.20f, 0.70f, 1.00f};
-                case OrbitalType::F:
-                    return {0.92f, 0.35f, 1.00f};
+                const Subshell& current = subshellFillOrder[static_cast<std::size_t>(index)];
+                if (current.principalQuantumNumber == subshell.principalQuantumNumber
+                    && current.type == subshell.type)
+                {
+                    return index;
+                }
             }
 
-            return {0.70f, 0.75f, 0.85f};
+            return 0;
         }
 
         float radiusForSubshell(const Subshell& subshell)
@@ -134,10 +147,10 @@ namespace hzl
             }
 
             const OrbitalVisualEmphasis emphasis = emphasisForSubshell(subshell, highestPrincipalQuantumNumber);
-            glm::vec3 color = colorForOrbitalType(subshell.type);
+            glm::vec3 color = rainbowColorForOrbitalOrder(orbitalOrderForSubshell(subshell));
             if (emphasis == OrbitalVisualEmphasis::Core)
             {
-                color = {0.42f, 0.46f, 0.54f};
+                color *= 0.55f;
             }
 
             if (subshell.type == OrbitalType::S)
@@ -178,22 +191,22 @@ namespace hzl
         Atom oxygen16;
         oxygen16.position = {0.0f, 0.0f, 0.0f};
         oxygen16.nucleusRadius = 0.045f;
-        oxygen16.nucleusColor = {1.00f, 0.05f, 0.03f};
+        oxygen16.nucleusColor = {0.00f, 0.00f, 1.00f};
         oxygen16.atomicNumber = 8;
         oxygen16.massNumber = 16;
         oxygen16.symbol = "O";
         oxygen16.name = "Oxygen";
 
         oxygen16.orbitals.push_back(
-            {1, OrbitalType::S, OrbitalAxis::None, 2, 0.28f, {1.00f, 0.12f, 0.08f}, OrbitalVisualEmphasis::Core});
+            {1, OrbitalType::S, OrbitalAxis::None, 2, 0.28f, {0.55f, 0.03f, 0.02f}, OrbitalVisualEmphasis::Core});
         oxygen16.orbitals.push_back(
-            {2, OrbitalType::S, OrbitalAxis::None, 2, 0.54f, {1.00f, 0.95f, 0.08f}, OrbitalVisualEmphasis::Supporting});
+            {2, OrbitalType::S, OrbitalAxis::None, 2, 0.54f, {1.00f, 0.48f, 0.03f}, OrbitalVisualEmphasis::Supporting});
         oxygen16.orbitals.push_back(
-            {2, OrbitalType::P, OrbitalAxis::X, 2, 0.78f, {0.12f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
+            {2, OrbitalType::P, OrbitalAxis::X, 2, 0.78f, {1.00f, 0.92f, 0.08f}, OrbitalVisualEmphasis::Active});
         oxygen16.orbitals.push_back(
-            {2, OrbitalType::P, OrbitalAxis::Y, 1, 0.78f, {0.12f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
+            {2, OrbitalType::P, OrbitalAxis::Y, 1, 0.78f, {1.00f, 0.92f, 0.08f}, OrbitalVisualEmphasis::Active});
         oxygen16.orbitals.push_back(
-            {2, OrbitalType::P, OrbitalAxis::Z, 1, 0.78f, {0.12f, 1.00f, 0.22f}, OrbitalVisualEmphasis::Active});
+            {2, OrbitalType::P, OrbitalAxis::Z, 1, 0.78f, {1.00f, 0.92f, 0.08f}, OrbitalVisualEmphasis::Active});
 
         addElectronSamples(oxygen16);
 
@@ -219,7 +232,7 @@ namespace hzl
         Atom atom;
         atom.position = {0.0f, 0.0f, 0.0f};
         atom.nucleusRadius = 0.035f + 0.00012f * static_cast<float>(atomicNumber);
-        atom.nucleusColor = {1.00f, 0.05f, 0.03f};
+        atom.nucleusColor = {0.00f, 0.00f, 1.00f};
         atom.atomicNumber = atomicNumber;
         atom.massNumber = element.massNumber;
         atom.symbol = element.symbol;
