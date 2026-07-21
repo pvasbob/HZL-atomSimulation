@@ -16,7 +16,7 @@ This project is currently an educational 3D orbital viewer. It lets you choose a
 - Wireframe orbital shell visualization
 - Basic `s`, `p`, `d`, and `f` orbital shape approximations
 - Rainbow orbital color ordering
-- Blue nuclear core
+
 
 ## Build Environment
 
